@@ -1,0 +1,53 @@
+Common Lisp Bootcamp
+=====================
+
+Syntax Overview in 5 minutes
+----------------------------
+
+Atom: number, symbol, character literals, strings, empty list
+
+	nil = '() -> nil is defined as the empty list
+
+List: '() , '(this is a list)
+
+	'... = (quote ...)
+
+Hello world!: (princ "Hello world, from Lisp!")
+
+Lisp in More Detail
+--------------------
+
+REPL: Read-Eval-Print-Loop
+
+Expresion: 	always returns something -even itself
+			two kinds: atoms and lists
+				-atom: singular thing
+				-list: enclosed in a pair of parentheses, list of expresions (atoms or lists)
+					   Unless marked as data, lists are treated as a function.
+
+Lists: 	stored as chains of pointer-pairs named CONS-CELLS. Cell points either to a memory address where a value is 			stored or to another cons-cell.
+			-First cell in cons-cell:  car -> Contents Address Register		(first of a list)
+			-Second cell in cons-cell: cdr  -> Contents Decrement Register	(rest of a list)
+		
+		pointer-pair = cons-cells
+
+Common Lisp Style Guide
+-----------------------
+
+;;Example symbol names
+'my-adition-function
+'my-integer-type
+'my-hash-table
+'my-list-of-alists
+
+;; Global variables declared as top-level forms with defvar or defparameter
+'*my-global-variable* ; This are called earmuffs
+
+;;;; four preceding semi-colons for file headers, copyright and license information
+
+;;; three preceding semi-colons for descriptive text
+
+;; two preceding semi-colons for commentary on the immediately following text
+
+; one preceding semi-colon for in-line comments, inside code blocks
+
