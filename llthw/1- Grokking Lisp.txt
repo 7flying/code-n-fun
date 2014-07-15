@@ -1,5 +1,6 @@
 Common Lisp Bootcamp
 =====================
+; 14/07/14
 
 Syntax Overview in 5 minutes
 ----------------------------
@@ -51,3 +52,24 @@ Common Lisp Style Guide
 
 ; one preceding semi-colon for in-line comments, inside code blocks
 
+Printing, Strings and Streams
+=============================
+
+; 15/07/14
+
+Strings
+-------
+
+Types of strings: string and simple-string (rare)
+
+Lisp treats the string as an atom (underneath it isn't)
+
+REMEMBER: atom: anything that is self-evaluated -> returns itself
+
+To escape: " use \" similarty to \ use \\. But when we print \" we get \" instead of "
+since when Lisp returns any object it returns it "readably"
+
+We may see if our strings are on UTF-8/Unicode by typing char-code-limit. If the constant returned is 1114112 we have unicode. (generally we will have)
+
+(coerce "Hello multiverse!" 'list)  -->here we print "hello..." as a list of characters
+									--> 'list is the type argument
