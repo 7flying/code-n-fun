@@ -20,13 +20,13 @@ Lisp in More Detail
 
 REPL: Read-Eval-Print-Loop
 
-Expresion: 	always returns something -even itself
+Expression: always returns something -even itself
 			two kinds: atoms and lists
 				-atom: singular thing
-				-list: enclosed in a pair of parentheses, list of expresions (atoms or lists)
+				-list: enclosed in a pair of parentheses, list of expressions (atoms or lists)
 					   Unless marked as data, lists are treated as a function.
 
-Lists: 	stored as chains of pointer-pairs named CONS-CELLS. Cell points either to a memory address where a value is 			stored or to another cons-cell.
+Lists: 	stored as chains of pointer-pairs named CONS-CELLS. Cell points either to a memory address where a value is stored or to another cons-cell.
 			-First cell in cons-cell:  car -> Contents Address Register		(first of a list)
 			-Second cell in cons-cell: cdr  -> Contents Decrement Register	(rest of a list)
 		
@@ -42,7 +42,7 @@ Common Lisp Style Guide
 'my-list-of-alists
 
 ;; Global variables declared as top-level forms with defvar or defparameter
-'*my-global-variable* ; This are called earmuffs
+'*my-global-variable* ; These are called earmuffs
 
 ;;;; four preceding semi-colons for file headers, copyright and license information
 
