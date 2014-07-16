@@ -1,3 +1,3 @@
-; 2. Format example
+;;;; 2. Format example
 
 (format t "hello, world")

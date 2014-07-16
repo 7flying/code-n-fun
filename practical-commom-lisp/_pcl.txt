@@ -1,0 +1,24 @@
+[CH2] Lather, Rinse, Repeat: A Tour of the REPL
+===============================================
+; 16/07/14
+
+(format t "string") -> t: sends output to standard output
+					-> it returns NIL: Lisp's version of false/null
+
+* DEFUN :
+(defun hello-world ()
+	(format t "Hello, world"))
+
+
+[CH3] Practical: A Simple Database
+==================================
+
+Types of operators: functions, macros and special operators.
+
+List example:
+	(list 1 2 3)
+Property list example (plist):
+	(list :a 1 :b 2 c:3)	-> keyword: any name that starts with ':', :a, :b, :c
+
+* GETF function: Takes a plist and a symbol and returns the value in the plist following the symbol.
+	(getf (list :a 1 :b 2 c:3) :a) -> returns 1

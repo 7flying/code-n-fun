@@ -1,6 +1,0 @@
-Lather, Rinse, Repeat: A Tour of the REPL
-=========================================
-; 16/07/14
-
-(format t "string") -> t: sends output to standard output
-					-> it returns NIL: Lisp's version of false/null
