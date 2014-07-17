@@ -36,7 +36,7 @@ Common Lisp Style Guide
 -----------------------
 
 ;;Example symbol names
-'my-adition-function
+'my-addition-function
 'my-integer-type
 'my-hash-table
 'my-list-of-alists
@@ -66,7 +66,7 @@ Lisp treats the string as an atom (underneath it isn't)
 
 REMEMBER: atom: anything that is self-evaluated -> returns itself
 
-To escape: " use \" similarty to \ use \\. But when we print \" we get \" instead of "
+To escape: " use \" similarly to \ use \\. But when we print \" we get \" instead of "
 since when Lisp returns any object it returns it "readably"
 
 We may see if our strings are on UTF-8/Unicode by typing char-code-limit. If the constant returned is 1114112 we have unicode. (generally we will have)

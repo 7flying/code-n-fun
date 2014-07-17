@@ -22,3 +22,25 @@ Property list example (plist):
 
 * GETF function: Takes a plist and a symbol and returns the value in the plist following the symbol.
 	(getf (list :a 1 :b 2 c:3) :a) -> returns 1
+
+; 17/07/14
+
+(format t "~{~a:~10t~a~%~}~%" cd)
+
+* FORMAT: takes two arguments, (1) the stream where it sends the output (t is the shorthand for *standard-output*) and (2) a format string that can contain text and directives.
+	Format directives start with ~ (analogous to % in C)
+	FORMAT DIRECTIVES:	
+		~a: aesthetic: consume one argument and output it in a human-readable form.
+			example: 	(format t "~a" "Dixie Chicks")
+					 	-> returns: Dixie Chicks
+					 	   			NIL
+						(format t "~a" :title)
+						-> returns: TITLE
+									NIL
+		~t: tabulating. ~10t tells FORMAT to move to the tenth column before processing the text ~a. It doesn't consume any arguments.
+			example: 	(format t "~a:~10t~a" :artist "Dixie Chicks")
+						-> returns: ARTIST:        Dixie Chicks
+									NIL
+		~{: the next argument to be consumed must be a list. FORMAT loops over the list processing the directives until ~}
+		~}: means end of list.
+		~%: doesn't consume any arguments, tells to emit a newline
