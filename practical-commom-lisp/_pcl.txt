@@ -44,3 +44,24 @@ Property list example (plist):
 		~{: the next argument to be consumed must be a list. FORMAT loops over the list processing the directives until ~}
 		~}: means end of list.
 		~%: doesn't consume any arguments, tells to emit a newline
+
+; 21/07/14
+
+Example:
+
+(defun prompt-read (prompt) ; Returns string
+	(format *query-io* "~a: " prompt)
+	(force-output *query-io*)
+	(read-line *query-io*))
+
+* PARSE-INTEGER: parses an integer out of the string received as an input. Returns an error if something goes wrong.
+	example:	(parse-integer (prompt-read "Rating")) -> expects a number
+
+	If given the argument :junk-allowed is not that extrict.
+	example:	(parse-integer (prompt-read "Rating") :junk-allowed t)
+
+	But if no integer is found it will return NIL rather than number, so that should be 0 in our case so if we make:
+	(or (parse-integer (prompt-read "Rating") :junk-allowed t) 0)
+	the default value becomes 0
+
+* Y-OR-N-P: it reprompts the user if he enters something but y/Y/n/N
