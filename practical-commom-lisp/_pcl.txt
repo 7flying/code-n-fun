@@ -57,7 +57,7 @@ Example:
 * PARSE-INTEGER: parses an integer out of the string received as an input. Returns an error if something goes wrong.
 	example:	(parse-integer (prompt-read "Rating")) -> expects a number
 
-	If given the argument :junk-allowed is not that extrict.
+	If given the argument :junk-allowed is not that strict.
 	example:	(parse-integer (prompt-read "Rating") :junk-allowed t)
 
 	But if no integer is found it will return NIL rather than number, so that should be 0 in our case so if we make:
@@ -65,3 +65,35 @@ Example:
 	the default value becomes 0
 
 * Y-OR-N-P: it reprompts the user if he enters something but y/Y/n/N
+
+;  6/08/14
+
+Example:
+
+(defun save-db (filename)
+	(with-open-file (out filename
+						:direction :output
+						:if-exists :supersede)
+		(with-standard-io-syntax
+			(print *db* out))))
+
+* WITH-OPEN_FILE: opens a file, binds the stream to a variable, executes a set of expressions and then closes the file.
+	- :direction :output -> for writing
+	- :if-exists :supersede -> overwrite if file already exists
+
+* PRINT: prints Lisp objects in a form that can be read back by the Lisp reader
+
+* WITH-STANDARD-IO-SYNTAX: ensures that certain variables have 'standard' values
+
+Example:
+
+(defun load-db (filename)
+	(with-open-file (in filename)
+		(with-standard-io-syntax
+			(setf *db* (read in)))))
+
+This time the default of :input is used and so :directions is no longer needed.
+
+* READ: reads from the stream, in this case 'in'.
+
+* SETF: it is Common Lisp's main assignment operator. Set's its first argument to the result of evaluating its second argument.
