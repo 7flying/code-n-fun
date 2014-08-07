@@ -1,0 +1,11 @@
+Notes on 1.6
+------------
+
+- reverse: reverses a string -> god -- dog
+
+- concatenate: concatenates strins. Needs 'string as second argument.
+	ex: (concatenate 'string "band" "age")  --> "bandage"
+
+- subseq string from to: returns a subsequence of the string from 'from' to 'to'
+
+
