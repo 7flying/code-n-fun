@@ -1,6 +1,8 @@
 *.FASL
 *.fasl
 *.lisp-temp
+*.ofasl
+*.lisp~
 
 # =========================
 # Operating System Files
