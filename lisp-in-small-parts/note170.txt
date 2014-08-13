@@ -1,0 +1,8 @@
+Notes on 1.7
+------------
+
+- format param1 param2 ...:
+	- param1: is t for printing, nil to return the result as a string
+	- param2: format string prefixed by ~
+			- format strings: 	~a: like %s, expects a string
+								~%: line break

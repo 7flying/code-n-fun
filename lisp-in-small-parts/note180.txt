@@ -1,0 +1,34 @@
+Notes on 1.8
+------------
+
+Testing if:		
+
+				-two objects are identical: eq
+					(eq 'fred 'fred)
+				-numbers: =, >, <
+				-a nuber is even or odd: evenp, oddp
+					(evenp 2)
+				-two strings are equal: string=
+					(string= "Hello" "Hello")
+				-is something a  -number: numberp
+								 -list: listp
+				-something is nil: null
+
+Conditional tests:
+
+					-if: only alows to give one paramenter to be executed at the if and another in the else.
+					(if (evenp a)
+						(print "Answer is even")
+						(print "Answer is odd")) ; else
+
+					(defun maximum (a b)
+						(if (> a b)
+							a
+							b))
+
+Grouping procedures:
+						
+						-progn: to wrap several procedures in a single bracketed list
+						(if (even a)
+							(progn (print "Answer is even") 0)
+							(progn (print "Answer is odd") 1))
