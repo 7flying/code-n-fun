@@ -1,15 +1,15 @@
+# Lisp
 *.FASL
 *.fasl
 *.lisp-temp
 *.ofasl
 *.lisp~
 
-# =========================
-# Operating System Files
-# =========================
-
-# Windows
-# =========================
+# C
+*.o
+*.ko
+*.obj
+*.elf
 
 # Windows image file caches
 Thumbs.db
