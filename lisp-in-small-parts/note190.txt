@@ -1,0 +1,25 @@
+Notes on 1.9
+------------
+
+- capi:display-message "Message": typical window.alert
+
+- capi:prompt-for-string "Message": asks to enter a string
+
+- capi:prompt-for-number "Message": asks to enter a number
+
+- capi:prompt-for-confirmation "Message": ask a Yes/No question, returns T(true) or Nil(false)
+
+- capi:promt-with-list
+	'("Item 1" "Item 2" "Item 3")
+	"Message")
+
+Example:
+
+	(defun story ()
+		(let ((name (capi:prompt-for-string "What is your name?:"))
+			 (food (capi:prompt-for-string "What is your favourite food?:"))
+			 (colour (capi:prompt-with-list
+			 		 '("red" "blue" "green" "pink")
+			 		 "What is your favourite colour?")))
+		(capi:display-message
+		"bla bla ~a ~a ~a" name food colour)))

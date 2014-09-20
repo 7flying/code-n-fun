@@ -6,7 +6,7 @@ Notes on 1.5
 
 - rest: returns the list minus the first element
 
--NOTE: first was called car, and rest cdr
+-NOTE: 'first' was called 'car', and 'rest' 'cdr'
 
 - nth n: returns the nth elements of a list
 

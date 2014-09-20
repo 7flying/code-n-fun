@@ -1,0 +1,16 @@
+Notes on 1.4
+------------
+
+let* defines one or mover local variables with specified initial values.
+
+(let* ((var1 value1)
+	   (var2 value2)
+	   .....)
+ body)
+
+ Example:
+
+ (defun average (number1 number2)
+  (let* ((sum (+ number1 number2))
+  		 (result (/ sum 2)))
+   result))
