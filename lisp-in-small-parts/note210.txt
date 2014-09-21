@@ -1,0 +1,31 @@
+Notes on 2.1
+------------
+
+* To find the sum of a list of numbers: (Think of recursion)
+
+(defun sum-list (numbers)
+  (if (null numbers) 0
+    (+ (first numbers) (sum-list (rest numbers)))))
+
+* Create a new list which is identical to the original list, but with
+ every number doubled.
+
+(defun double-list (numbers)
+  (if (null numbers) nil
+    (cons (* 2 (first numbers)) (double-list (rest numbers)))))
+
+
+ -----------------------------------------------------------------------------
+| sum-list operates on every element of a list and returns a single result.	  |
+| double-list operates on every element of a list and returns a new,          |
+| transformed, list.                                                          |
+ -----------------------------------------------------------------------------
+
+dolist: provides a way of performing a series of operations on every element in
+	a list. ('for' in the Lisp way)
+
+	(dolist (item list)
+	  body)
+
+	Example: (dolist (i '(1 2 3))
+				(print (* i 2))) 

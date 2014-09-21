@@ -16,7 +16,8 @@ Testing if:
 
 Conditional tests:
 
-					-if: only alows to give one paramenter to be executed at the if and another in the else.
+					-if: only alows to give one paramenter to be executed at
+						the if and another in the else.
 					(if (evenp a)
 						(print "Answer is even")
 						(print "Answer is odd")) ; else
@@ -28,7 +29,8 @@ Conditional tests:
 
 Grouping procedures:
 						
-						-progn: to wrap several procedures in a single bracketed list
+						-progn: to wrap several procedures in a single bracketed
+							 list
 						(if (even a)
 							(progn (print "Answer is even") 0)
 							(progn (print "Answer is odd") 1))
