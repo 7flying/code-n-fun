@@ -1,16 +1,16 @@
 from flask.ext.wtf import Form
-from wtforms import TextField, BooleanField, TextAreaField
-from wtforms.validators import Required, Length
+from wtforms import TextField, BooleanField, TextAreaField, StringField
+from wtforms.validators import Length, DataRequired
 
 class LoginForm(Form):
 	"""docstring for LoginForm"""
-	openid = TextField('openid', validators = [Required()])
+	openid = TextField('openid', validators = [DataRequired()])
 	remember_me = BooleanField('remember_me', default = False)
 
 class EditForm(Form):
-	nickname = TextField('nickname', validators = [Required()])
-	about_me = TextAreaField('about_me',
-		validators = [Length(min = 0, max = 140)])
+	nickname = StringField('nickname', validators = [DataRequired()])
+	about_me = TextAreaField('about_me', validators=[Length(min=0, max=140)])
+	
 	def __init__(self, original_nickname, *args, **kwargs):
 		Form.__init__(self, *args, **kwargs)
 		self.original_nickname = original_nickname
@@ -21,7 +21,10 @@ class EditForm(Form):
 		if self.nickname.data == self.original_nickname:
 			return True
 		user = User.query.filter_by(nickname=self.nickname.data).first()
-		if user != None:
+		if user is not None:
 			self.nickname.errors.append('This name is already in use. Choose another')
 			return False
 		return True
+
+class PostForm(Form):
+	post = StringField('post', validators=[DataRequired()])
