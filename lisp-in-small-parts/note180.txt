@@ -6,7 +6,7 @@ Testing if:
 				-two objects are identical: eq
 					(eq 'fred 'fred)
 				-numbers: =, >, <
-				-a nuber is even or odd: evenp, oddp
+				-a number is even or odd: evenp, oddp
 					(evenp 2) --> T
 				-two strings are equal: string=
 					(string= "Hello" "Hello")
