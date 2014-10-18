@@ -1,0 +1,18 @@
+Notes on 2.2
+------------
+
+- To repeat a specified number of times:
+
+(defun print-times (n)
+  (if (= 0 n) nil
+    (progn
+      (print "Hello")
+      (print-times (- n 1)))))
+
+- To repeat for a range of numbers
+
+(defun print-for (from to)
+  (if (> from to) nil
+    (progn
+      (format t "~a^2 = ~a~%" from (* from from))
+      (print-for (+ from 1) to))))

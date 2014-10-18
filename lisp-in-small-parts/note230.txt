@@ -1,0 +1,36 @@
+Notes on 2.3
+------------
+
+In Lisp we can represent a tree as: (tree left-branch right-branch)
+
+So:
+						      n
+					in                       on
+			  pin        ink           son          one
+          spin  pint    sink inky   sons song    gone one
+ 	
+ Becames:
+ (n
+   (in
+      (pin
+        (spin nil nil)
+        (pint nil nil))
+       (ink
+         (sink nil nil)
+         (inky nil nil)))
+    (on
+      (son
+        (sons nil nil)
+        (song nil nil))
+       (one
+         (gone nil nil)
+         (one nil nil))))
+
+
+How to print a tree:
+(defun print-tree (tree)
+  (if (null tree) nil
+    (progn
+      (print (first tree))
+      (print-tree (second tree))
+      (print-tree (third tree)))))
