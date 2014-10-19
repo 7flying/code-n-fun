@@ -1,0 +1,19 @@
+Notes on 2.4
+------------
+
+funcall (function call): two params. The first one should evaluate to a procedure.
+
+So:
+(funcall '* 1 2) -> gives 2
+
+* To apply a procedure to each element of a list:
+(defun apply-list (function items)
+  (if (null items) nil
+    (progn
+      (funcall function (first items))
+      (apply-list function (rest items)))))
+
+* To apply a procedure to make a new list:
+(defun change-list (function items)
+  (if (null items) nil
+    (cons (funcall function (first items)) (change-list function (rest items)))))
