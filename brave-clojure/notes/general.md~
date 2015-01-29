@@ -1,6 +1,0 @@
-General Notes
-=============
-
-* Launch CIDER: M-x cider-jack-in
-* Set the namespace to the one listed in the top of the file: C-c M-n
-
