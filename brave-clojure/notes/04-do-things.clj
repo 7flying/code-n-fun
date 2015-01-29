@@ -68,7 +68,7 @@
 (get {:a 0 :b {:c "Thunderbolt!"}} :c) ;-> {:c "Thunderbolt!"}
 (get-in {:a 0 :b {:c "Thunderbolt!"}} [:b :c]) ;-> "Thunderbolt!"
 
-; It is beter to treat the map as a function and the wished key as an argument
+; It is better to treat the map as a function and the wished key as an argument
 ({:a 0 :b 1} :a) ;-> 0
 ({:a 0 :b {:c "Thunderbolt!"}} :b) ; -> {:c "Thunderbolt!"}
 (({:a 0 :b {:c "Thunderbolt!"}} :b) :c) ;-> "ThunderBolt!"
@@ -161,7 +161,6 @@
 ; When we quote lists, maps and vectors all symbols within the collection will
 ; be unevaluated
 (first '(some-digimons "an string" 0)) ;-> some-digimons
-
 
 ;;; Functions
 (first [1 2 3 4])
@@ -286,7 +285,6 @@
 (def my-super-special-multiplier (fn [x] (* x 3)))
 (my-super-special-multiplier 24)
 
-
 ; 2- Use the compact weird way
 #(* % 3)
 ; apply the compact weird way
@@ -310,3 +308,51 @@
   #(+ % inc-by)) ; inc-by is in scope so the returned function has acces to it
 (def inc3 (inc-maker 3))
 (inc3 4)
+
+;;; Pulling it all together
+;; The hobbit program
+
+(def asym-hobbit-body-parts [{:name "head" :size 3}
+                             {:name "left-eye" :size 1}
+                             {:name "left-ear" :size 1}
+                             {:name "mouth" :size 1}
+                             {:name "nose" :size 1}
+                             {:name "neck" :size 2}
+                             {:name "left-shoulder" :size 3}
+                             {:name "left-upper-arm" :size 3}
+                             {:name "chest" :size 10}
+                             {:name "back" :size 10}
+                             {:name "left-forearm" :size 3}
+                             {:name "abdomen" :size 6}
+                             {:name "left-kidney" :size 1}
+                             {:name "left-hand" :size 2}
+                             {:name "left-knee" :size 2}
+                             {:name "left-thigh" :size 4}
+                             {:name "left-lower-leg" :size 3}
+                             {:name "left-achilles" :size 1}
+                             {:name "left-foot" :size 2}])
+
+(defn needs-matching-part?
+  [part]
+  (re-find #"^left-" (:name part)))
+
+(defn make-matching-part
+  [part]
+  {:name (clojure.string/replace (:name part) #"^left-" "right-")
+   :size (:size part)})
+
+(defn symmetrize-body-parts
+  "Expects a seq of maps which have a :name and :size"
+  [asym-body-parts]
+  (loop [remaining-asym-parts asym-body-parts final-body-parts []]
+    (if (empty? remaining-asym-parts)
+      final-body-parts
+      (let [[part & remaining] remaining-asym-parts final-body-parts
+            (conj final-body-parts part)]
+        (if (needs-matching-part? part)
+          (recur remaining (conj final-body-parts (make-matching-part part)))
+          (recur remaining final-body-parts))))))
+
+(symmetrize-body-parts asym-hobbit-body-parts)
+
+(s)
