@@ -1,0 +1,125 @@
+;;;
+;;; 04 - Clojure Crash Course
+;;;
+
+;;; Control Flow
+
+;; if
+; (if boolean-form
+;  then-form
+;  optional-else-form)
+(if true
+  "abra cadabra"
+  "hocus pocus")
+
+;; do: wraps up multiple forms
+(if true
+  (do (println "Success!")
+      "abra cadabra")
+  (do (println "Failure")
+      "hocus pocus!"))
+
+;; when: combination of if and do. No else form.
+(when true
+  (println "Success")
+  "abra cadabra!")
+
+;;; Naming things
+
+;; def: to bind a name to a value
+(def starter-pokemons
+  ["Charmander"
+   "Bulbasaur"
+   "Squirtle"])
+
+;;; Data Structures
+; All of Clojure's data structures are inmutable
+
+; -nil: no value
+; to check if something is nil
+(nil? 1) ;-> false
+(nil? nil) ;-> true
+
+; nil and false represent false
+; everything else is true
+
+; = equality operator
+(= 2 2)
+(= nil nil)
+(= nil false)
+
+; -Numbers
+67   ; integer
+5.5  ; float
+1/4  ; ratio
+
+; -Strings
+"Lord Voldemort"
+"\"He who must not be named\""
+; Concatenate strings
+(str "Supercalifrastilistico" " " "espiralidoso")
+
+; -Maps
+(get {:a 0 :b 1} :a) ;-> 0
+(get {:a 0 :b 1} :c) ;-> nil
+; get vs get-in
+(get {:a 0 :b {:c "Thunderbolt!"}} :c) ;-> {:c "Thunderbolt!"}
+(get-in {:a 0 :b {:c "Thunderbolt!"}} [:b :c]) ;-> "Thunderbolt!"
+; It is beter to treat the map as a function and the wished key as an argument
+({:a 0 :b 1} :a) ;-> 0
+({:a 0 :b {:c "Thunderbolt!"}} :b) ; -> {:c "Thunderbolt!"}
+(({:a 0 :b {:c "Thunderbolt!"}} :b) :c) ;-> "ThunderBolt!"
+
+; Keywords
+; May be used as functions which look up the corresponding value in a data
+; structure
+; Look up :a in map
+(:a {:a 2 :b 2}) 
+; Provide a default value
+(:c {:a 2 :b 2} "KHALEESI")
+
+;* Map creation
+(hash-map :a 1 :b 2)
+
+; -Vectors
+[3 2 1]
+(get [3 3 4] 0) ;-> 3
+; Elements of a vector can be of any type, an types can be mixed
+(get ["Pikachu" 3 {:a "Hello"}] 0)
+;* Create vectors using vector function
+(vector "Pichu" "Pikachu" "Raichu")
+; Add an element to a vector -> elements are added to the END
+(conj [1 2 3] "Surprise!") ;-> [1 2 3 "Surprise!"]
+
+; -Lists
+'(1 2 3 4) ; Like Common Lisp
+;* Create a list with the list function
+(list 1 2 3 4) ;-> (1 2 3 4)
+; Add an element to a list -> elements are added to the BEGINNING
+(conj '(1 2 3 4) 0)
+
+; -Sets
+; Sets are collections of unique values
+#{"Pichu" "Pikachu" "Raichu"}
+; Add an element to a set
+(conj #{:a :b} :b)
+; Check whether a value exists in a set
+(get #{:a :b} :a)
+; The same as
+(:a #{:a :b})
+; If the element does't exist we get a nil
+(:pichu #{:pikachu :raichu})
+;* Create sets from existing vectors using the set function
+(set [3 3 4 4 5]) ;-> #{4 3 5}
+; We can use this to check if an element exists in a collection
+(get (set [2 3 4 4 "Pikachu"]) "Pikachu") ;-> "Pikachu"
+(get (set [2 3 4 5 "Raichu"]) "Pikachu") ;-> nil
+
+;* Create a hash-set
+(hash-set 2 3 4 4 5 6) ;-> #{4 6 3 2 5}
+;* Create sorted set
+(sorted-set :n :a :c) ;-> #{:a :c :n}
+
+; -Symbols and naming
+; def associates the value [ ... ] with the symbol some-digimons
+(def some-digimons ["Metalgreimon" "Gatomon" "Inventedmon"])
