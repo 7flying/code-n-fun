@@ -310,6 +310,85 @@
 (inc3 4)
 
 ;;; Pulling it all together
+
+;; let
+; Binds the names on the left to the values on the right
+; 'let x be y'
+(let [x 3] ;-> x takes 3
+  x)
+
+(def dalmatian-list
+  ["Pongo" "Perdita" "Puppy 1" "Puppy 2"])
+(let [dalmatians (take 2 dalmatian-list)]
+  dalmatians)
+
+; Introduces a new scope
+(def x 0)
+(let [x 1] x)
+
+; But we can reference existing bindings in our let bindig
+(def x 0)
+(let [x (inc x)] x)
+
+; We can also use rest-params
+(let [[pongo & dalmatians] dalmatian-list]
+  [pongo dalmatians])
+
+; -The value of a let form is the last from in its body which gets evaluated
+; -let forms follow all the destructuring rules introduced in functions
+; Uses of let:
+; -naming things
+; -allow to evaluate an expression only once an re-use the result
+;  -> important when we need to re-use the result of an expensive function call
+
+;; loop
+; Provides another way to do recursion in Clojure
+(loop [iteration 0] ; introduces a binding with an initial value
+  (println (str "Iteration " iteration))
+  (if (> iteration 3)
+    (println "Goodbye!")
+    (recur (inc iteration)))) ; calls the anonymous function created by loop
+
+; Just using functions
+(defn recursive-printer
+  ([]
+   (recursive-printer 0))
+  ([iteration]
+   (println iteration)
+   (if (> iteration 3)
+     (println "Goodbye!")
+     (recursive-printer (inc iteration)))))
+(recursive-printer)
+
+; loop has much better performance
+
+;; Regular Expresions
+; Literal notation #"your-regular-expresion"
+
+;; Reduce
+; The pattern "process each element in a secuence and build a result" is
+; implemented in the function 'reduce'
+(reduce + [1 2 3 4]) ; is like: (+ (+ (+ 1 2) 3) 4)
+; Apply the given function to the first two elements of the sequence
+; Apply the given function to the result and the next element of the requence
+; and repeat this step for every remaining element in the sequence.
+
+; Reduce can also take an optional initial value
+(reduce + 2 [ 1 2 3 4])
+
+; Reduce implementation
+(defn my-reduce
+  ([f initial coll]
+   (loop [result initial
+          remaining coll]
+     (let [[current & rest] remaining]
+       (if (empty? remaining)
+         result
+         (recur (f result current) rest)))))
+  ([f [head & tail]]
+   (my-reduce f (f head (first tail)) (rest tail))))
+
+
 ;; The hobbit program
 
 (def asym-hobbit-body-parts [{:name "head" :size 3}
@@ -341,14 +420,20 @@
   {:name (clojure.string/replace (:name part) #"^left-" "right-")
    :size (:size part)})
 
-(defn symmetrize-body-parts
+; Given a sequence (asym-body-parts) continuously split it into head an tail.
+; Process the head, add it to some result and then use recursion to continue
+; the process with the tail
+(defn symmetrize-body-parts 
   "Expects a seq of maps which have a :name and :size"
   [asym-body-parts]
-  (loop [remaining-asym-parts asym-body-parts final-body-parts []]
-    (if (empty? remaining-asym-parts)
-      final-body-parts
-      (let [[part & remaining] remaining-asym-parts final-body-parts
-            (conj final-body-parts part)]
+  (loop [remaining-asym-parts asym-body-parts ; tail <- remaining-asym-parts
+         final-body-parts []] ; result sequence <- final-body-parts
+    (if (empty? remaining-asym-parts) ; if tail is empty we have finished
+      final-body-parts ; result sequence (initially empty)
+      (let [[part & remaining] remaining-asym-parts ; else split into head
+            final-body-parts ; and tail
+            (conj final-body-parts part)] ; add part to final-body-parts
+        ; since we need the part and also its symmetric.
         (if (needs-matching-part? part)
           (recur remaining (conj final-body-parts (make-matching-part part)))
           (recur remaining final-body-parts))))))
