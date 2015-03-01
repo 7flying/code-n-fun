@@ -1,4 +1,4 @@
-(ns the-divine-cheese-code.core.visualization.svg)
+(ns the-divine-cheese-code.visualization.svg)
 
 (defn latlng->point
   "Convert a lat/ong map to comma-separated string"
