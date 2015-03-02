@@ -27,42 +27,23 @@
               :lat 41.90
               :lng 12.45}])
 
-;; Notes: 
-;; require
-; Reads and evaluates the contents of the file, Clojure expects the file to
-; declare a nemespace corresponding to its path
-; require lets you alias a namespace when you require it:
-(require '[the-divine-cheese-code.visualization.svg :as svg])
+(defn url
+  [filename]
+  (str "file:///"
+       (System/getProperty "user.dir")
+       "/"
+       filename))
 
-; which is the same as:
-(require 'the-divine-cheese-code.visualization.svg)
-(alias 'svg 'the-divine-cheese-code.visualization.svg)
-
-; then you can use the aliased namespace
-; (svg/points heists)
-
-; require & refer
-
-; Instead of calling require and then refer, the function use does both:
-(require 'the-divine-cheese-code.visualization.svg)
-(refer 'the-divine-cheese-code.visualization.svg)
-; equivalent to :
-(use 'the-divine-cheese-code.visualization.svg)
-
-; We can alias a namespace with use the same way we did with require
-(use '[the-divine-cheese-code.visualization.svg :as svg])
-; equivalent to
-(require 'the-divine-cheese-code.visualization.svg)
-(refer 'the-divine-cheese-code.visualization.svg)
-(alias 'svg 'the-divine-cheese-code.visualization.svg)
-
-; So we can use
-(= svg/points points)
-; and
-(= svg/latlng->point latlng->point)
-
-
+(defn template
+  [contents]
+  (str "<style>polyline { fill:none; stroke:#5881d8; stroke-width:3}</style>"
+       contents))
 
 (defn -main
   [& args]
-  (println (points heists)))
+  (let [filename "map.html"]
+    (->> heists
+         (xml 50 100)
+         template
+         (spit filename))
+    (browse/browse-url (url filename))))
