@@ -208,7 +208,7 @@
 
 ; When lazy sequences are produced via functions that have side effects, any
 ; effects other than those needed to produce the first element in the seq do not
-; occur until tue seq is consumed.
+; occur until the seq is consumed.
 ; doall can be used to force any effects. It walks through the successive nexts
 ; of que seq, retains the head and returns it, thus causing the entire seq to
 ; reside in memory at one time. (Clojuredocs.org/clojure.core/doall)

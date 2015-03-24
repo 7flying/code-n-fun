@@ -15,3 +15,6 @@ This is a collection of little things made by reading books/tutorials in order t
   * [llthw](https://github.com/7flying/code-n-fun/tree/master/llthw) (Learn Lisp The Hard Way): Currently it is being written, can't wait to see it finished. 
   * [practical-common-lisp](https://github.com/7flying/code-n-fun/tree/master/practical-commom-lisp): I hold opposite views of this book, so judge it by yourself.
 * [rest-knockout](https://github.com/7flying/code-n-fun/tree/master/rest-knockout): Simple tutorial about Knockout, later I used Knockout for the frontend of [Yil-Pil](https://github.com/7flying/yil-pil). 
+* [brave-clojure](https://github.com/7flying/code-n-fun/tree/master/brave-clojure): Learning Clojure
+* [collective-intelligence](https://github.com/7flying/code-n-fun/tree/master/collective-intelligence): Book by the name 'Programming Collective Intelligence'
+* [think-complexity](https://github.com/7flying/code-n-fun/tree/master/think-complexity): A book about complexity science
