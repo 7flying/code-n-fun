@@ -105,3 +105,93 @@ To generate the executable do:
 as -gstabs -o program.o program.s
 ld -o program program.o
 ```
+
+## Using C Library Functions in Assembly
+
+The program is as follows:
+
+```
+	# cpuid-clib.s Sample program to extract the processor Vendor using
+	# C libray functions in assembly
+	.section .data
+output:
+	.asciz "The processor Vendor ID is '%s'\n"
+	.section .bss
+	.lcomm buffer, 12
+	.section .text
+	.globl _start
+_start:
+	movl $0, %eax
+	cpuid
+	movl $buffer, %edi
+	movl %ebx, (%edi)
+	movl %edx, 4(%edi)
+	movl %ecx, 8(%edi)
+	pushl $buffer
+	pushl $output
+	call printf
+	addl $8, %esp
+	pushl $0
+	call exit
+
+```
+
+#### Linking with C library functions
+
+You can either perform *static* of *dynamic* linking.
+
+* Static linking: links function object code directly into the application
+executable program file. This wastes memory when there are multiple instances
+of the program running at the same time since they all have their own copy of
+the same functions.
+
+* Dynamic linking: it uses libraries that enable to reference the functions in
+the applications, but not link the function codes in the executable program.
+Dynamic libs are called at the program's runtime by the operating system and
+can be shared among multiple programs.
+
+
+On Linux systems the standard C dynamic library is located in the file
+```libc.so.x```, where ```x``` represents the lib's version.
+
+This file is automatically linked to C programs when using ```gcc```.
+
+To link the ```libx.so``` there is no need to specify the whole path
+```/lib/libx.so``` because the linker assumes that library would be somewhere
+in ```/lib/*```.
+
+1. Use the option ```-l``` followed by the required lib name, in this
+   case ```c```.
+2. You must specify the program that will load the dynamic lib at runtime. For
+   Linux systems it its ```ld-linux.so.2```, generally in the ```/lib```
+   directory. Use the ```-dynamic-linker``` parameter.
+
+So, this it gives us:
+
+```
+ld -dynamic-linker /lib/ld-linux.so.2 -o cpuid-clib -lc cpuid-clib.o
+```
+
+If using ```gcc``` make the appropriate label change from ```_start``` to
+```main```, and run ```gcc``` like before:
+
+```gcc -o cpuid-clib cpuid-clib.s```
+
+###### Note on x86_64 systems
+
+If we are in a 64 system some instructions such as ```pushl``` would give us
+problems, so specify that you would like a 32 bit executable with
+```-m elf_i386``` option but first assemble the program with the
+```--32``` flag.
+
+```
+as --32 -o cpuid-clib.o cpuid-clib.s
+ld -dynamic-linker /lib/ld-linux.so.2 -m elf_i386 -o cpuid-clib -lc cpuid-clib.o 
+```
+
+You can avoid those two steps with ```gcc``` using ```-m32``` option:
+
+```
+gcc -m32 -o cpuid-clib cpuid-clib.s
+```
+just remember to change ```_start``` to ```main```.

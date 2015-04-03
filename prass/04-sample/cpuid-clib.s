@@ -1,4 +1,4 @@
-	# cpuid-clin.s Sample program to extract the processor Vendor using
+	# cpuid-clib.s Sample program to extract the processor Vendor using
 	# C libray functions in assembly
 	.section .data
 output:
@@ -7,8 +7,8 @@ output:
 	.lcomm buffer, 12
 	.section .text
 	# gcc looks for the main label to determine the beginning of the program
-	.globl _start
-_start:
+	.globl main
+main:
 	movl $0, %eax
 	cpuid
 	movl $buffer, %edi
