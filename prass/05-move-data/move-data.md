@@ -103,7 +103,8 @@ The GNU assembler uses two directives to declare buffers:
 |```.lcomm``` | Declares a *local common* memory area for data that is not initialized. |
 
 The local common memory area cannot be accessed outside of the local assembly
-code, this is, they cannot be used in ```.globl``` directives.
+code, this is, data defined as *.lcomm* cannot be used in ```.globl```
+directives.
 
 The format for those directives is as follows:
 
@@ -124,11 +125,14 @@ reserved at runtime.
 #### Executable size tests
 
 * ```sizetest1.s```: has no data elements and performs an exit 0.
-* ```sizetest2.s```: has a 10000 byte buffer declared in the bss section.
-* ```sizetest3.s```: has a 10000 byte buffer declared in the data section.
+* ```sizetest2.s```: has a 10000 byte buffer declared in the bss section
+  and performs an exit 0.
+* ```sizetest3.s```: has a 10000 byte buffer declared in the data section
+  and performs an exit 0.
 
-| Program | Size (bytes) |
-|-|-|
-| ```sizetest1.s```| 664 |
-| ```sizetest2.s```| 907 |
-| ```sizetest3.s```| 10907 |
+| Program          | Size (bytes) |
+|------------------|--------------|
+| ```sizetest1.s```| 664          |
+| ```sizetest2.s```| 907          |
+| ```sizetest3.s```| 10907        |
+
