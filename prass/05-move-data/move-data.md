@@ -89,3 +89,46 @@ before the label name:
 ```
 movl $LINUX_SYS_CALL, %eax
 ```
+
+## The *bss* section
+
+When you define a data element in the bss section we just declare raw segments
+of memory that are reserved for whatever we want.
+
+The GNU assembler uses two directives to declare buffers:
+
+| Directive   | Description |
+|-------------|-------------|
+|```.comm```  | Declares a *common* memory area for data that is not initialized |
+|```.lcomm``` | Declares a *local common* memory area for data that is not initialized. |
+
+The local common memory area cannot be accessed outside of the local assembly
+code, this is, they cannot be used in ```.globl``` directives.
+
+The format for those directives is as follows:
+
+```.directive symbol, length```
+
+Where ```symbol```is a label assigned to the memory area, and ```length``` is
+the number of bytes contained in the memory area, for instance:
+
+```
+.section .bss
+.lcomm buffer, 10000
+```
+
+The data in the bss section is not included in the executable program
+because they are not initialized with program data; these memory areas are
+reserved at runtime.
+
+#### Executable size tests
+
+* ```sizetest1.s```: has no data elements and performs an exit 0.
+* ```sizetest2.s```: has a 10000 byte buffer declared in the bss section.
+* ```sizetest3.s```: has a 10000 byte buffer declared in the data section.
+
+| Program | Size (bytes) |
+|-|-|
+| ```sizetest1.s```| 664 |
+| ```sizetest2.s```| 907 |
+| ```sizetest3.s```| 10907 |

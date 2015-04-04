@@ -4,7 +4,7 @@
 output:
 	.asciz "The processor Vendor ID is '%s'\n"
 	.section .bss
-	.lcomm buffer, 12
+		.lcomm buffer, 12
 	.section .text
 	# gcc looks for the main label to determine the beginning of the program
 	.globl main
