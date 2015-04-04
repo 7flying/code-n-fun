@@ -6,7 +6,7 @@
 
 The program is as follows:
 
-```
+```GAS
 	# cpuid.s Sample program to extract the processor Vendor ID
 	.section .data
 output:
@@ -34,7 +34,7 @@ To generate the executable:
 
 * Assemble the assembly language source into the object code:
 
-	```
+	```bash
 	as -o cpuid.o cpuid.s
 	```
 
@@ -42,7 +42,7 @@ To generate the executable:
 	
 * Link the object code file into the executable file:
 
-	```
+	```bash
 	ld -o cpuid cpuid.o
 	```
 
@@ -60,7 +60,7 @@ to determine where the program starts, so we must provide that.
 
 Program:
 
-```
+```GAS
 	# cpuid-gcc.s Sample program to extract the processor Vendor made for
 	# gcc
 	.section .data
@@ -88,7 +88,7 @@ main:
 
 To generate the executable:
 
-```
+```bash
 gcc -o cpuid-gcc cpuid-gcc.s
 ```
 
@@ -101,7 +101,7 @@ reassemble the program again after finishing the debug phase.
 
 To generate the executable do:
 
-```
+```bash
 as -gstabs -o program.o program.s
 ld -o program program.o
 ```
@@ -110,7 +110,7 @@ ld -o program program.o
 
 The program is as follows:
 
-```
+```GAS
 	# cpuid-clib.s Sample program to extract the processor Vendor using
 	# C libray functions in assembly
 	.section .data
@@ -168,14 +168,16 @@ in ```/lib/*```.
 
 So, this it gives us:
 
-```
+```bash
 ld -dynamic-linker /lib/ld-linux.so.2 -o cpuid-clib -lc cpuid-clib.o
 ```
 
 If using ```gcc``` make the appropriate label change from ```_start``` to
 ```main```, and run ```gcc``` like before:
 
-```gcc -o cpuid-clib cpuid-clib.s```
+```bash
+gcc -o cpuid-clib cpuid-clib.s
+```
 
 ###### Note on x86_64 systems
 
@@ -184,14 +186,14 @@ problems, so specify that you would like a 32 bit executable with
 ```-m elf_i386``` option but first assemble the program with the
 ```--32``` flag.
 
-```
+```bash
 as --32 -o cpuid-clib.o cpuid-clib.s
 ld -dynamic-linker /lib/ld-linux.so.2 -m elf_i386 -o cpuid-clib -lc cpuid-clib.o 
 ```
 
 You can avoid those two steps with ```gcc``` using ```-m32``` option:
 
-```
+```bash
 gcc -m32 -o cpuid-clib cpuid-clib.s
 ```
 just remember to change ```_start``` to ```main```.
