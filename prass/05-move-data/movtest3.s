@@ -1,4 +1,4 @@
-	# novtest3.s - Example of using indexed memory locations
+	# movtest3.s - Example of using indexed memory locations
 	.section .data
 output:
 	.asciz "The value is %d\n"

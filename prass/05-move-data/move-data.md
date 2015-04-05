@@ -312,3 +312,63 @@ Example:
 The registers can also hold a memory address, and when the register does, it is
 referred to as a **pointer**. Accessing the data stored in the memory location
 referenced by a pointer is called **indirect addressing**.
+
+When we use a label, it references the data value contained in the memory
+location:
+
+```GAS
+movl values, %edi
+```
+
+And when you use the dollar (```$```), you get the memory location address of
+the data value, and not the data value located at the address.
+
+```GAS
+movl $values, %edi
+```
+
+Similarly, when we use a register we load a value in the register:
+
+```GAS
+movl $10, %edi
+```
+
+So when we put parentheses around the register, the instruction moves the value
+to the memory location contained in the register, for instance:
+
+```GAS
+movl %edx, (%edi)
+```
+
+You can increment and decrease the indirect addressing value contained in the
+register:
+
+```GAS
+movl %edx, 4(%edi)
+movl %edx, -4(edi)
+```
+
+## Conditional Move instructions
+
+A conditional move instruction is, as the name implies, a ```MOV``` instruction
+that takes place under special conditions.
+
+The conditional move instructions have the format:
+
+```GAS
+cmovx source, destination
+```
+
+Where ```x``` is a one or two letter code defining the condition. The conditions
+are based on specific bits of the ```EFLAGS``` register.
+
+These are the important bits for conditional move instructions:
+
+| ```EFLAGS``` bit | Name | Description
+|---|---|---|
+| ```CF``` | Carry flag | When a mathematical expression creates a carry or borrow |
+| ```OF``` | Overflow flag | When a integer value is too large or too small |
+| ```PF``` | Parity flag | When the register contains corrupt data from a mathematical operation |
+| ```SF``` | Sign flag | Indicates whether the result is positive or negative |
+| ```ZF``` | Zero flag | When the result of the mathematical operation is zero |
+
