@@ -372,3 +372,22 @@ These are the important bits for conditional move instructions:
 | ```SF``` | Sign flag | Indicates whether the result is positive or negative |
 | ```ZF``` | Zero flag | When the result of the mathematical operation is zero |
 
+
+The conditional move instructions are divided into instructions for signed
+and unsigned operations.
+
+* Unsigned operations: involve comparisons that rely on the Carry, Zero and
+  Parity flags to determine the difference between operands.
+
+  | Instruction pair | Description | ```EFLAGS``` Condition |
+  |---|---|---|
+  | ```CMOVA```/```CMOVNBE``` | Above/not below or equal | (CF or ZF) = 0 |
+  | ```CMOVAE```/```CMOVNB``` | Above or equal/not below | CF = 0 |
+  | ```CMOVNC``` | Not carry | CF = 0 |
+  | ```CMOVB```/```CMOVNAE``` | Below/not above or equal | CF = 1 |
+  | ```CMOVC``` | Carry | CF = 1 |
+  | ```CMOVBE```/```CMOVNA``` | Below or equal/not above | (CF or ZF) = 1 |
+  | ```CMOVE```/```CMOVZ``` | Equal/zero | ZF = 1 |
+  | ```CMOVNE```/```CMOVNZ``` | Not equal/not zero | ZF = 0
+  | ```CMOVP```/```CMOVPE``` | Parity/parity even | PF = 1 |
+  | ```CMOVNP```/```CMOVPO``` | Not parity/parity odd | PF = 0 |
