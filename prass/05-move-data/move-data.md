@@ -249,4 +249,66 @@ This is moving 4 bytes of data starting at the memory location referenced by
 the ```value```label to the ```EAX``` register; remember that for 2 bytes
 ```MOVW``` must be used and for 1 byte ```MOVB```.
 
+###### Moving data values from register to memory
 
+Very simple:
+
+```GAS
+movl %eax, value
+```
+
+Moves 4 bytes of data stored in the ```EAX``` register and places them in the
+memory location referenced by the ```value``` label.
+
+###### Using indexed memory locations
+
+Remember that we can specify more than one value on a directive:
+
+```GAS
+values:
+	.int 10, 15, 20, 25
+```
+
+And this behaves like an array, each element takes 4 bytes and when referencing
+data in the array we must specify an index.
+
+This is called **indexed memory mode**, and the memory location is determined
+by:
+
+```base_address + offset_address + index * size```
+
+* A base address
+* An offset address that is added to the base address
+* The size of the data element
+* An index to determine which data element to select
+
+The format of the expression is:
+
+```base_address(offset_address, index, size)```
+
+- If any of the values are zero, they can be omitted but commas are still
+required as placeholders.
+
+- The ```offset_address``` and the ```index``` must be registers.
+
+Example:
+  Given the array referenced by the ```values``` label, reference 20 and move it
+  to ```EAX```.
+
+   ```GAS
+   values:
+       .int 10, 15, 20, 25
+   ```
+
+   Solution:
+   
+   ```GAS
+   movl $2, %edi
+   movl values(, %edi, 4), %eax
+   ```
+
+###### Using indirect addressing with registers
+
+The registers can also hold a memory address, and when the register does, it is
+referred to as a **pointer**. Accessing the data stored in the memory location
+referenced by a pointer is called **indirect addressing**.
