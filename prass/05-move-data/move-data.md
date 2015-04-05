@@ -391,3 +391,17 @@ and unsigned operations.
   | ```CMOVNE```/```CMOVNZ``` | Not equal/not zero | ZF = 0
   | ```CMOVP```/```CMOVPE``` | Parity/parity even | PF = 1 |
   | ```CMOVNP```/```CMOVPO``` | Not parity/parity odd | PF = 0 |
+
+* Signed operations: involve comparisons that rely on the Sign and Overflow
+  flags to indicate the comparison between operands.
+
+  | Instruction pair | Description | ```EFLAGS``` Condition |
+  |---|---|---|
+  | ```CMOVGE```/```CMOVNL``` | Greater or equal/ not less | (SF xor OF) = 0 |
+  | ```CMOVL```/```CMOVNGE``` | Less/not greater of equal | (SF xor OF) = 1 |
+  | ```CMOVLE```/```CMOVNG``` | Less of equal/not greater | ((SF XOR OF) or ZF) = 1 |
+  | ```CMOVO``` | Overflow | OF = 1 |
+  | ```CMOVNO``` | Not overflow | OF = 0 |
+  | ```CMOVS``` | Sign (negative) | SF = 1 |
+  | ```CMOVNS``` | Not sign (not negative) | SF = 0|
+
