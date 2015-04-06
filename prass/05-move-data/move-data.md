@@ -399,9 +399,20 @@ and unsigned operations.
   |---|---|---|
   | ```CMOVGE```/```CMOVNL``` | Greater or equal/ not less | (SF xor OF) = 0 |
   | ```CMOVL```/```CMOVNGE``` | Less/not greater of equal | (SF xor OF) = 1 |
-  | ```CMOVLE```/```CMOVNG``` | Less of equal/not greater | ((SF XOR OF) or ZF) = 1 |
+  | ```CMOVLE```/```CMOVNG``` | Less of equal/not greater | ((SF xor OF) or ZF) = 1 |
   | ```CMOVO``` | Overflow | OF = 1 |
   | ```CMOVNO``` | Not overflow | OF = 0 |
   | ```CMOVS``` | Sign (negative) | SF = 1 |
   | ```CMOVNS``` | Not sign (not negative) | SF = 0|
 
+
+Example:
+
+```GAS
+ # Move the value refererenced by value to ECX
+ movl value, %ecx
+ # Substract EBX from ECX and set EFLAGS
+ cmp %ebx, %ecx
+ # Move 
+ cmova %ecx, %ebx
+```
