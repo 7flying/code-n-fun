@@ -515,5 +515,81 @@ These are the instructions:
     equal the value in the memory location is loaded into this pair.
   + ```ECX```:```EBX``` pair: this value is moved to dest. memory location when
     comparison results in equal values.
-
+  
   See ```cmpxchg8b-test.s``` for an example.
+
+
+## The Stack
+
+The stack is reserved at higher memory addresses and grows downward lower
+memory addresses.
+
+The bottom of the stack (highest memory address) has the data elements placed
+by the operating system, such as the command-line parameters.
+
+The ```ESP``` register holds the memory address of the top of the stack, if
+we modify the ```ESP``` register and lost track of it, strange things can
+happen.
+
+#### Push and Pop data
+
+To place new elements into the stack you perform a *push* operation, whereas
+you *pop* the topmost element from the stack when you want to retrieve the
+last placed element.
+
+```PUSH``` and ```POP``` instructions have the following format:
+
+```GAS
+pushx source
+
+popx destination
+```
+
+Where ```x``` is:
+* ```w```: for a 16-bit word
+* ```l```: for a 32-bit long word
+
+The ```source``` value may be:
+* 16-bit and 32-bit register value.
+* 16-bit segment register.
+* 8-, 16- and 32-bit immediate data value.
+* 16- and 32-bit memory value.
+
+And ```destination``` location can be:
+* 16-bit and 32-bit register location.
+* 16-bit segment register location.
+* 16- and 32-bit memory location. 
+
+
+There are a few additional ```PUSH``` and ```POP``` functions:
+
+| Instruction | Description |
+|---|---|
+| ```PUSHA``` vs```POPA``` | Push or pop all the 16-bit general purpose registers |
+| ```PUSHAD``` vs ```POPAD``` | Push or pop all the 32-bit general purpose registers |
+| ```PUSHF``` vs ```POPF``` | Push or pop the lower 16 bits of ```EFLAGS``` register |
+| ```PUSHFD``` vs ```POPFD``` | Push or pop the ```EFLAGS``` register (32 bits)|
+
+
+* ```PUSHA``` and ```PUSHAD```: ```PUSHA``` pushes the 16-bit registers in the
+  following order:  ```DI```, ```SI```, ```BP```, ```BX```, ```DX```, ```CX```
+  and ```AX```.
+  ```PUSHAD``` does the same with the 32 bit registers.
+
+* ```POPA``` and ```POPAD```: retrieve the 16-bit and 32-bit general purpose
+  registers respectively, in the reverse order in which they where pushed.
+
+* ```PUSHF```, ```POPF```, ```PUSHFD``` and ```POPFD```: the execution of these
+  instructions depends on the processor mode of operation.
+  
+  - Protected mode in ring 0 (privileged mode): all of the non reserved flags
+    in the ```EFLAGS``` register can be modified but ```VIP```, ```VIF``` and
+    ```VM``` flags. ```VIP``` and ```VIF``` flags are cleared and ```VM``` is
+	unmodified.
+	
+  - Protected mode in rings > 0 (unprivileged mode): same as in ring 0 plus
+  ```IOFL``` field is not allowed to be modified.
+
+
+See ```pushpop.s``` for an example.
+
