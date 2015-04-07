@@ -413,6 +413,107 @@ Example:
  movl value, %ecx
  # Substract EBX from ECX and set EFLAGS
  cmp %ebx, %ecx
- # Move 
+ # Move if (CF or ZF) = 0
  cmova %ecx, %ebx
 ```
+
+## Exchanging Data
+
+To switch the values of two registers you generally need a temporary
+intermediate register, however Intel provides instructions to exchange data
+without intermediate registers.
+
+These are the instructions:
+
+| Instruction | Description |
+|---|---|
+| ```XCHG ``` | Exchanges the values of two registers, or a register an a memory location |
+| ```BSWAP``` | Reverses the byte order in a 32-bit register |
+| ```XADD``` | Exchanges two values and stores the sum in the dest. operand |
+| ```CMPXCHG``` | Compares a value with an external value and exchanges it with another |
+| ```CMPXCHG8B``` | Compares two 64-bit values and exchanges it with another |
+
+
+* ```XCHG``` Exchange Register/Memory with Register: exchanges data values
+  between two general purpose registers, or between a general purpose register
+  and a memory location.
+
+  The registers must have the same size, either 8, 16 or 32-bit sizes are
+  supported.
+
+  The format is as follows:
+
+  ```GAS
+  xchg operand1, operand2
+  ```
+
+  Example (see ```xchg-test.s``` to get the complete code):
+    ```GAS
+    movl $1, %eax
+	movl $2, %ebx
+	xchg %eax, %ebx
+	```
+
+* ```BSWAP```, Byte Swap : reverses the order of the bytes in a 32-bit
+  register; bits 0-7 are swapped with bits 24-31 and bits 8-15 are swapped
+  with bits 16-23.
+ 
+  This is used to change from a big-endian value to a little-endian value, and
+  vice versa. For instance if we had ```0x12345678``` after a ```BSWAP``` we
+  get ```0x78563412```.
+
+  See ```bswap-test.s``` for a complete example.
+  
+  * ```XADD```, Exchange and Add: exchanges the values between two registers or
+  a memory location and a register, then adds the values and stores the result
+  in the destination location. The registers can be 8, 16 or 32-bit ones.
+
+  The format is:
+
+  ```GAS
+  xadd source, destination
+  ```
+
+  Where ```source``` must be a register and ```destination``` a register
+  or a memory location.
+
+  See ```xadd-test.s``` for an example.
+
+* ```CMPXCHG```, Compare and Exchange: compares the destination operand with
+  the value in the ```EAX```, ```AX``` or ```AL``` registers.
+  If the values are equal, the source value is moved to the destination
+  register; otherwise, the destination operand value is moved to the ```EAX```,
+  ```AX``` or ```AL``` registers.
+
+  Instruction format:
+
+  ```GAS
+  cmpxchg source, destination
+  ```
+
+  See ```cmpxchg-test.s``` for an example.
+
+* ```CMPXCHG8B```, Compare and Exchange Bytes: (similar to ```CMPXCHG```
+  instruction), works with 8-byte values. It has a single operand:
+  ```destination```, that references a memory location.
+  
+  ```GAS
+  cmpxchg8b destination
+  ```
+  
+  The 8-byte value of the ```EDX```:```EAX``` pair (```EDX``` high-order)
+  is compared with the value in
+  the memory location.  If the values are equal, the 64-bit value contained in
+  the ```ECX```:```EBX``` pair (```ECX``` high-order) is moved to the
+  destination memory location;
+  otherwise, the value in the memory location is loaded into
+  ```EDX```:```EAX``` pair.
+
+  A little review:
+  + Memory location: operand1 of comparison.
+  + ```EDX```:```EAX``` pair: operand2 of comparison. When the comparison is not
+    equal the value in the memory location is loaded into this pair.
+  + ```ECX```:```EBX``` pair: this value is moved to dest. memory location when
+    comparison results in equal values.
+
+  See ```cmpxchg8b-test.s``` for an example.
