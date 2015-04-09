@@ -1,0 +1,19 @@
+
+cmptest:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000400078 <_start>:
+  400078:	90                   	nop
+  400079:	b8 0f 00 00 00       	mov    $0xf,%eax
+  40007e:	bb 0a 00 00 00       	mov    $0xa,%ebx
+  400083:	39 c3                	cmp    %eax,%ebx
+  400085:	7d 07                	jge    40008e <greater>
+  400087:	b8 01 00 00 00       	mov    $0x1,%eax
+  40008c:	cd 80                	int    $0x80
+
+000000000040008e <greater>:
+  40008e:	bb 14 00 00 00       	mov    $0x14,%ebx
+  400093:	b8 01 00 00 00       	mov    $0x1,%eax
+  400098:	cd 80                	int    $0x80

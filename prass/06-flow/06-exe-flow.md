@@ -355,3 +355,4 @@ and unigned values. For unsigned integers, just the instructions using the above
 and lower keywords are used.
 
 
+See ```cmptest.s``` for an example.
