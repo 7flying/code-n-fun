@@ -26,6 +26,78 @@ There are three types of unconditional branches: *jumps*, *calls* and
 
 #### *Jumps*
 
+The instuction format is as follows:
+
+```GAS
+jmp location
+```
+
+Where ```location``` is a value declared as a label within the program.
+
+Internally the ```jmp``` instruction is translated to three different opcodes
+depending on the distance (number of bytes jumped) from the ```jmp```
+instruction memory location, and the destination memory location.
+
+The types are divided into:
+
+* Short jumps: when the jump is less than 128 bytes far.
+
+* Far jumps: in segmented memory models, when the jump has a destination
+  in another segment.
+
+* Near jumps: when the jump is more than 128 bytes far, and in the same segment.
+
+
+For instance, see ```jmptest.s```:
+
+```GAS
+	# jmptest.s - An example of the jmp instruction
+	.section .text
+	.globl _start
+_start:
+	nop
+	# set 1 for exit syscall
+	movl $1, %eax
+	jmp downthere
+	# set 10 as a result code
+	movl $10, %ebx
+	int $0x80
+downthere:
+	# set 20 as a result code
+	movl $20, %ebx
+	int $0x80
+```
+
+After running it, we can check that it went through the ```downthere``` branch
+by checking the result code:
+
+```bash
+echo $?
+```
+
+And it will give us ```20```, as expected.
+
+If we disassemble the code we can see that ```400087 <downthere>``` is assigned
+as the jump destination:
+
+```
+jmptest:     file format elf64-x86-64
+
+Disassembly of section .text:
+
+0000000000400078 <_start>:
+  400078:	90                   	nop
+  400079:	b8 01 00 00 00       	mov    $0x1,%eax
+  40007e:	eb 07                	jmp    400087 <downthere>
+  400080:	bb 0a 00 00 00       	mov    $0xa,%ebx
+  400085:	cd 80                	int    $0x80
+
+0000000000400087 <downthere>:
+  400087:	bb 14 00 00 00       	mov    $0x14,%ebx
+  40008c:	cd 80                	int    $0x80
+
+```
+
 
 #### *Calls*
 
@@ -96,3 +168,4 @@ program takes the control. The instruction pointer is transferred to the called
 program, which continues the execution until it completes, then the control
 returns to the caller program using an interrupt return instruction (```IRET```
  or ```IRETD```).
+

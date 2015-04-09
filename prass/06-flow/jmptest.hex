@@ -1,0 +1,16 @@
+
+jmptest:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000400078 <_start>:
+  400078:	90                   	nop
+  400079:	b8 01 00 00 00       	mov    $0x1,%eax
+  40007e:	eb 07                	jmp    400087 <downthere>
+  400080:	bb 0a 00 00 00       	mov    $0xa,%ebx
+  400085:	cd 80                	int    $0x80
+
+0000000000400087 <downthere>:
+  400087:	bb 14 00 00 00       	mov    $0x14,%ebx
+  40008c:	cd 80                	int    $0x80
