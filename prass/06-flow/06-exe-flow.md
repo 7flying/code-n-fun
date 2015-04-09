@@ -291,3 +291,67 @@ program, which continues the execution until it completes, then the control
 returns to the caller program using an interrupt return instruction (```IRET```
  or ```IRETD```).
 
+## Conditional Branches
+
+The conditional branch instructions jump or fall through based on the current
+value of the ```EFLAGS``` register.
+
+There are several conditional branch instructions, but all follow the following
+format:
+
+```GAS
+jxxx address
+```
+
+Where ```address``` is the location where the program may jump to, and
+```xxx``` is a one to three character code. If the ```address``` is specified
+as a label in an assembly program, it is converted into an offset address.
+
+As in unconditional jumps, the different types of jumps (short, far and near)
+apply, but just two: short and near jumps, are allowed.
+
+A short jump used a 8-bit signed address offset and a near jump uses either
+a 16-bit or 32-bit signed address offset.
+
+The following table shows the different conditional jump instructions:
+
+| Instruction | Description | ```EFLAGS``` |
+|---|---|---|
+| ```JA``` | Jump if above | CF=0 and ZF=0 |
+| ```JAE``` | Jump if above or equal | CF=0 |
+| ```JB``` | Jump if below | CF=1 |
+| ```JBE``` | Jump if below or equal  | CF=1 or ZF=1 |
+| ```JC``` | Jump if carry | CF=1 |
+| ```JCXZ``` | Jump if CX register is zero |  |
+| ```JECXZ``` | Jump if ECX register is zero |  |
+| ```JE``` | Jump if equal | ZF=1 |
+| ```JG``` | Jump if greater  | ZF=0 and SF=OF |
+| ```JGE``` | Jump if greater or equal | SF=OF |
+| ```JL``` | Jump if less  | SF != OF  |
+| ```JLE``` | Jump if less or equal | ZF=1 or SF!=OF |
+| ```JNA``` | Jump if not above | CF=1 of ZF=1 |
+| ```JNAE``` | Jump if not above or equal| CF=1 |
+| ```JNB``` | Jump if not below | CF=0 |
+| ```JNBE``` | Jump if not below or equal | CF=0 and ZF=0 |
+| ```JNC``` | Jump if not carry| CF=0 |
+| ```JNE``` | Jump if not equal | ZF=0  |
+| ```JNG``` | Jump if not greater | ZF=1 or SF!=OF |
+| ```JNGE``` | Jump if not greater or equal | SF!=OF  |
+| ```JNL``` | Jump if not less | SF=OF |
+| ```JNLE``` | Jump if not less or equal | SF!=OF |
+| ```JNO``` | Jump if not overflow | OF=0 |
+| ```JNP``` | Jump if not parity | PF=0 |
+| ```JNS``` | Jump if not sign | SF=0 |
+| ```JNZ``` | Jump if not zero | ZF=0 |
+| ```JO``` | Jump if overflow | OF=1 |
+| ```JP``` | Jump if parity | PF=1 |
+| ```JPE``` | Jump if parity even | PF=1 |
+| ```JPO``` | Jump if parity odd | PF=0 |
+| ```JS``` | Jump if sign | SF=1 |
+| ```JZ``` | Jump if zero |  ZF=1 |
+
+Although some may appear redundant, they make sanse when working with signed
+and unigned values. For unsigned integers, just the instructions using the above
+and lower keywords are used.
+
+
