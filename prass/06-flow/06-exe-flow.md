@@ -101,6 +101,128 @@ Disassembly of section .text:
 
 #### *Calls*
 
+Since calls *remember* where they jumped from and can return there, they are
+made using two instructions: first, the ```call``` instruction is used to jump
+to the function you defined, and then ```ret```  is used to return from the
+function to the memory location from which ```call``` was executed.
+
+The underlying structure behind calls is the stack. This are the steps to make
+a call (to a C style function, such as ```exit``` or ```printf```):
+
+1. Push the parameters into the stack in reverse order, this is, the N - 1
+   parameter first, the N - 2 parameter second and so on. This would leave
+   the stack prepared to pop the parameters in order:
+
+   ```
+     The Stack
+  ----------------
+ |      ~         |
+  ---------------- 
+ |   Param 3      |
+  ----------------
+ |   Param 2      |
+  ----------------
+ |   Param 1      |  <--- ESP
+  ----------------
+  ```
+
+2. Call the function:
+
+   ```GAS
+   call some_function
+   ```
+
+3. Clear the stack if parameters where pushed onto it.
+   For instance, if you are using the  ```printf``` function with two 32-bit
+   values add 8 to the ```ESP``` register.
+
+###### *Local* functions (without parameters)
+
+To make a local function we must remember the return address, do whatever we
+need to do as a function, and then return.
+
+The return address is automatically pushed to the stack when a call is made,
+leaving the stack as follows:
+
+```
+     The Stack
+  ----------------
+ |      ~         |
+  ---------------- 
+ |   Param 3      |
+  ----------------
+ |   Param 2      |
+  ----------------
+ |   Param 1      |
+  ----------------
+ | Return address | <---  ESP
+  ----------------
+```
+
+So, to save the return address we must remember the current ```ESP``` register
+location.
+
+The common practice to implement a function is the following one:
+
+1. We are going to save the ```ESP`` register value to the ```EBP``` register;
+   but before doing that we are going to save the original ```EBP``` value (to
+   avoid corruption if it was needed) to the stack.
+
+   ```GAS
+   pushl %ebp
+   movl %esp, %ebp
+   ```
+
+2. Our function will do whatever it does *without* modifying the ```EBP```
+   register.
+
+3. We will return to the memory location that called us, in this point
+   the stack has the following contents:
+
+   ```
+     The Stack
+  ----------------
+ |      ~         |
+  ---------------- 
+ |   Param 3      |
+  ----------------
+ |   Param 2      |
+  ----------------
+ |   Param 1      |
+  ----------------
+ | Return address |
+  ----------------
+ | Some EBP Value | <--- ESP
+  ----------------
+```
+
+   So, first of all restore the original ```ESP``` register from the ```EBP```
+   register, and pop the original ```EBP``` register value:
+   ```GAS
+   movl %ebp, %esp
+   popl %ebp
+   ```
+
+    Finally, return:
+    ```GAS
+	ret
+	```
+
+You can see an example at ```calltest.s```.
+
+###### Function template
+
+Wrapping up: use the following template for your functions.
+
+```GAS
+function_name_label:
+	pushl %ebp
+	movl %esp, %ebp
+	# your function stuff
+	movl %ebp, %esp
+	popl %ebp
+	ret
+```
 
 #### *Interrupts*
 
