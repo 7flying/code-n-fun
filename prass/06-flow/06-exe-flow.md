@@ -356,3 +356,66 @@ and lower keywords are used.
 
 
 See ```cmptest.s``` for an example.
+
+
+#### Examples of using the flag bits
+
+1. Zero flag: is used by ```JE```, ```JNE```, ```JZ``` and ```JNZ```
+   instructions. You can set it by the use of a mathematical instruction such
+   as ```SUBL ``` (subtract) or by the  ```CMP``` instruction.
+   
+   Given:
+   ```GAS
+   movl $10, %eax
+   movl $10, %ebx
+   ```
+   
+   These instructions set the zero flag:
+   ```GAS
+   subl $10, %eax
+   subl $10, %ebx
+   cmp %eax, %ebx
+   cmp %ebx, %eax
+   ```
+
+2. Parity flag: indicates the number of bits that are one in a mathematical
+   answer. If the resulting number of ones is even, the parity bit is enabled,
+   otherwise it is not; sometimes this is used as a greedy error checking
+   method.
+
+   So if we subtract 1 from 4, we get 3 which is ```00000011``` in binary, this
+   operation would set the parity flag because the number of ones is even.
+   Similarly, 4 - 3 would not set the parity flag since the result is one
+   (```00000001```), which is represented as an odd number of ones.
+
+   
+3. Sign flag: it is used to indicate a sign change in the value contained in
+   the register. When the value is negative the sign flag is enabled and the
+   highest bit of the register holding the value is used as the sign bit, when
+   the value is positive the sign flag is not enabled.
+   
+   For instance, the following instructions would enable the sign flag:
+   ```GAS
+   movl $0, %edi
+   subl $1, %edi
+   ```
+
+4. Carry flag: indicates when an overflow has happened in a mathematical
+   expression with an *unsigned number* (the overflow flag is used for
+   signed numbers). It indicates that the register holding the value has gone
+   beyond the size limit.
+   
+   For example, the following instructions would set the carry flag:
+   ```GAS
+   movl $0xffffffff, %eax
+   addl $1, %eax
+   ```
+
+  There are some specific instructions that may be used to modify the carry
+  flag:
+  
+  | Instruction | Description |
+  |---|---|
+  |```CLC``` | Clears the carry flag (sets it to zero) |
+  |```CMC``` | Complement the carry flag (set the opposite value of what is has) |
+  |```STC``` | Set the carry flag |
