@@ -378,6 +378,8 @@ See ```cmptest.s``` for an example.
    cmp %ebx, %eax
    ```
 
+   See ```zerotest.s``` for a complete example.
+
 2. Parity flag: indicates the number of bits that are one in a mathematical
    answer. If the resulting number of ones is even, the parity bit is enabled,
    otherwise it is not; sometimes this is used as a greedy error checking
@@ -387,6 +389,8 @@ See ```cmptest.s``` for an example.
    operation would set the parity flag because the number of ones is even.
    Similarly, 4 - 3 would not set the parity flag since the result is one
    (```00000001```), which is represented as an odd number of ones.
+
+   See ```paritytest.s``` for a complete example.
 
    
 3. Sign flag: it is used to indicate a sign change in the value contained in
@@ -400,6 +404,8 @@ See ```cmptest.s``` for an example.
    subl $1, %edi
    ```
 
+   See ```signtest.s``` for a complete example.
+ 
 4. Carry flag: indicates when an overflow has happened in a mathematical
    expression with an *unsigned number* (the overflow flag is used for
    signed numbers). It indicates that the register holding the value has gone
@@ -411,11 +417,15 @@ See ```cmptest.s``` for an example.
    addl $1, %eax
    ```
 
-  There are some specific instructions that may be used to modify the carry
-  flag:
-  
-  | Instruction | Description |
-  |---|---|
-  |```CLC``` | Clears the carry flag (sets it to zero) |
-  |```CMC``` | Complement the carry flag (set the opposite value of what is has) |
-  |```STC``` | Set the carry flag |
+   See ```carrytest.s``` for a complete example (remember to add the ```--32```
+   option to the assembler and mode ```-m elf_i386``` in the linker if you are in
+   a 64-bit architecture).
+
+   There are some specific instructions that may be used to modify the carry
+   flag:
+   
+   | Instruction | Description |
+   |---|---|
+   |```CLC``` | Clears the carry flag (sets it to zero) |
+   |```CMC``` | Complement the carry flag (set the opposite value of what is has) |
+   |```STC``` | Set the carry flag |

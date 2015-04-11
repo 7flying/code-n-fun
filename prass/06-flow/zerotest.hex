@@ -1,0 +1,15 @@
+
+a.out:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000400078 <_start>:
+  400078:	b8 0a 00 00 00       	mov    $0xa,%eax
+  40007d:	bb 0a 00 00 00       	mov    $0xa,%ebx
+  400082:	39 c3                	cmp    %eax,%ebx
+  400084:	74 02                	je     400088 <downthere>
+  400086:	cd 80                	int    $0x80
+
+0000000000400088 <downthere>:
+  400088:	cd 80                	int    $0x80
