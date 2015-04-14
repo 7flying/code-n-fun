@@ -429,3 +429,32 @@ See ```cmptest.s``` for an example.
    |```CLC``` | Clears the carry flag (sets it to zero) |
    |```CMC``` | Complement the carry flag (set the opposite value of what is has) |
    |```STC``` | Set the carry flag |
+
+
+## Loops
+
+Let's see how loops are made in assembly using the loop instruction family.
+
+Intel provides the following instructions:
+
+| Instruction | Description |
+|---|---|
+| ```LOOP``` | Loop until the ```ECX``` register is zero |
+| ```LOOPE/LOOPZ``` | Loop until either the ```ECX``` register is zero or the ```ZF``` flag is not set |
+| ```LOOPNE/LOOPNZ``` | Loop until either the ```ECX``` register is zero or the ```ZF``` flag is set |
+
+Which are used in the following manner:
+
+```GAS
+loop address
+```
+
+See ```loop.s``` and ```loop2.s``` for examples.
+
+**Important note**: bad things may happen if some instruction other than the
+loop instructions sets the ```ECX``` register to zero. For instance, if you
+set ```ECX``` to a negative or zero value it will decrease until the register
+overflows. This is where the ```JECXZ``` (jump if the ```ECX``` register is
+zero) instruction comes in handy.
+
+
