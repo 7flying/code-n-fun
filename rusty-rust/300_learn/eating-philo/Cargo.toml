@@ -1,0 +1,4 @@
+[package]
+name = "eating-philo"
+version = "0.1.0"
+authors = ["7flying <diez.f.irene@gmail.com>"]
