@@ -46,3 +46,26 @@ And launch Boschs:
 ```
 bochs -f boochsrc.txt -q
 ```
+
+## 2. Setup C support
+
+C needs a stack, to setup a stack point the ```esp``` register to a free memory
+area (aligned on 4 bytes due to performance [TODO check why]). We are going to
+reserve 4 MB of memory on the ```bss``` section, and then point the ```esp```
+register to the end of this section (see ```kernel_stack``` on ```loader.asm```).
+
+Remember that to call a C function from assembly we need to declare it as
+```extern function_name```, push the arguments onto the stack starting with the
+rightmost argument and finally call the function.
+
+To compile C code tell the compiler that no extra libraries should be used,
+stack protections should be removed and overall, that the presence of external
+libs should not be assumed
+(see [gcc link options](https://gcc.gnu.org/onlinedocs/gcc/Link-Options.html)).
+
+```
+-m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles
+    -nodefaultlibs
+```
+
+
