@@ -1,4 +1,4 @@
-OBJECTS = loader.o kmain.o
+OBJECTS = loader.o io.o kmain.o
 CC = gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c
@@ -28,3 +28,6 @@ run: os.iso
 
 clean:
 	rm -rf *.o kernel.elf os.iso
+
+check-syntax:
+	gcc -o .nul -S ${CHK_SOURCES}
