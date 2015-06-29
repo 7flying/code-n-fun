@@ -1,4 +1,5 @@
 #include "io.h"
+#include "serial.h"
 #include "colours.h"
 
 
@@ -17,7 +18,7 @@ void fb_move_cursor(unsigned short pos)
     outb(FB_DATA_PORT, pos & 0x00FF);
 }
 
-int write(char *buf, unsigned int len)
+int fb_write(char *buf, unsigned int len)
 {
     unsigned int i;
     for (i = 0; i<len; i++) {
@@ -27,11 +28,16 @@ int write(char *buf, unsigned int len)
     return 0;
 }
 
+int serial_is_transmit_fifo_empty(unsigned int com)
+{
+    return inb(SERIAL_LINE_STATUS_PORT(com)) & 0x20;
+}
+
 
 int kmain(int arg0, int arg1)
 {
     char test[] ="heeX";
-    int ret = write(test, 4);
+    int ret = fb_write(test, 4);
     ret += (arg0 + arg1);
     /*
     fb_write_cell(30, 'H', FB_GREEN, FB_DARK_GREY);

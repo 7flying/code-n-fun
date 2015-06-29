@@ -46,6 +46,24 @@ void fb_move_cursor(unsigned short pos);
  * @param buf - string to write
  * @param len - write up to len.
  */
-int write(char *buf, unsigned int len);
+int fb_write(char *buf, unsigned int len);
+
+/**
+ * inb:
+ * Reads a byte from the given I/O port.
+ * @param port - port to read from
+ * @return read byte
+ */
+unsigned char inb(unsigned short);
+
+/**
+ * serial_is_transmit_fifo_empty:
+ * Checks whether the transmit FIFO queue is empty or not for the specified COM
+ * port.
+ * @param com - COM port to check
+ * @return 0 if FIFO not empty
+ *         1 if FIFO empty
+ */
+int serial_is_transmit_fifo_empty(unsigned int com);
 
 #endif /* INCLUDE_IO_H */
