@@ -19,17 +19,26 @@ void fb_move_cursor(unsigned short pos)
 
 int write(char *buf, unsigned int len)
 {
-    
+    unsigned int i;
+    for (i = 0; i<len; i++) {
+        fb_write_cell(i, buf[i], FB_GREEN, FB_DARK_GREY);
+    }
+    fb_move_cursor(len);
     return 0;
 }
 
 
 int kmain(int arg0, int arg1)
 {
-    fb_write_cell(0, 'H', FB_GREEN, FB_DARK_GREY);
-    fb_write_cell(1, 'E', FB_GREEN, FB_DARK_GREY);
-    fb_write_cell(2, 'L', FB_GREEN, FB_DARK_GREY);
-    fb_write_cell(3, 'L', FB_GREEN, FB_DARK_GREY);
-    fb_write_cell(4, 'O', FB_GREEN, FB_DARK_GREY);
-    return arg0 + arg1;
+    char test[] ="heeX";
+    int ret = write(test, 4);
+    ret += (arg0 + arg1);
+    /*
+    fb_write_cell(30, 'H', FB_GREEN, FB_DARK_GREY);
+    fb_write_cell(32, 'E', FB_GREEN, FB_DARK_GREY);
+    fb_write_cell(34, 'L', FB_GREEN, FB_DARK_GREY);
+    fb_write_cell(36, 'L', FB_GREEN, FB_DARK_GREY);
+    fb_write_cell(38, 'O', FB_GREEN, FB_DARK_GREY);
+    */
+    return ret;
 }

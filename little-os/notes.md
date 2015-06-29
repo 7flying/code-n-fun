@@ -70,8 +70,8 @@ libs should not be assumed
 
 ## 3. Output
 
-To interact with the hardware we can use (i) memory-mapped I/0 or (ii) I/0
-ports. On the one hand, when the hardware uses a (i) memory mapped model we
+To interact with the hardware we can use (i) *memory-mapped I/0* or (ii) *I/0
+ports*. On the one hand, when the hardware uses a (i) memory mapped model we
 write at a specific memory address, the hardware reads and the screen is
 updated; on the other hand, if the hardware uses I/O ports we use the assembly
 ```in``` and ```out``` instructions to communicate.
@@ -90,3 +90,19 @@ To write a letter onto the screen we need 16 bits where:
 * Bits 8-15 define the ASCII value of the character.
 
 The available colours are defined in ```colours.h```.
+
+To move the cursor of the framebuffer we are using I/O ports. The position of
+the cursor is determined by 16 bits, where 0 means row zero position 0, 80 means
+row one position zero etc. We need to use the ```out``` instruction two times
+since it takes 8 bits and we need 16. The instruction has the following syntax:
+
+```
+out port, value
+```
+
+Where:
+ * Port ```0x3D4``` with value ```14``` it is used to tell the framebuffer to
+ expect the higher bits, whereas port ```0x3D4``` with value ```15``` tells that
+ we are sending the lower bits.
+ * Port ```0x3D5``` along with a value sends the corresponding bits' value.
+
