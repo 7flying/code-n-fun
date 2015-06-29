@@ -1,5 +1,5 @@
 *.txt
 iso/boot/grub/
 .nul
-.out
+*.out
 

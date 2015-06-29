@@ -12,6 +12,7 @@
 #define SERIAL_MODEM_COMMAND_PORT(base) (base + 4)
 #define SERIAL_LINE_STATUS_PORT(base) (base + 5)
 
+
 /**
  * SERIAL_LINE_ENABLE_DLAB:
  * Flag to tell that the highest 8 bits are comming to the data port, then the
@@ -53,5 +54,15 @@ void serial_configure_buffers(unsigned short com);
  * @param com - COM port to configure
  */
 void serial_configure_modem(unsigned short com);
+
+/**
+ * serial_is_transmit_fifo_empty:
+ * Checks whether the transmit FIFO queue is empty or not for the specified COM
+ * port.
+ * @param com - COM port to check
+ * @return 0 if FIFO not empty
+ *         1 if FIFO empty
+ */
+int serial_is_transmit_fifo_empty(unsigned int com);
 
 #endif /* _SERIAL_H_ */

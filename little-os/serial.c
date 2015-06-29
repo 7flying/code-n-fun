@@ -36,3 +36,8 @@ void serial_configure_modem(unsigned short com)
      */
     outb(SERIAL_MODEM_COMMAND_PORT(com), 0x03);
 }
+
+int serial_is_transmit_fifo_empty(unsigned int com)
+{
+    return inb(SERIAL_LINE_STATUS_PORT(com)) & 0x20;
+}
