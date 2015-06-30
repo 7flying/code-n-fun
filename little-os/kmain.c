@@ -1,6 +1,6 @@
 #include "fb.h"
 #include "colours.h"
-
+#include "serial.h"
 
 int kmain(int arg0, int arg1)
 {
@@ -14,5 +14,6 @@ int kmain(int arg0, int arg1)
     fb_write_cell(36, 'L', FB_GREEN, FB_DARK_GREY);
     fb_write_cell(38, 'O', FB_GREEN, FB_DARK_GREY);
     */
+    serial_write(test, 4);
     return ret;
 }

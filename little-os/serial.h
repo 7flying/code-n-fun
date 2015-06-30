@@ -65,4 +65,12 @@ void serial_configure_modem(unsigned short com);
  */
 int serial_is_transmit_fifo_empty(unsigned int com);
 
+
+/**
+ * serial_write:
+ * Writes the contents of buf of length len to the serial.
+ * @param text - string to write
+ * @param len - write up to len.
+ */
+void serial_write(char *text, unsigned int len);
 #endif /* _SERIAL_H_ */

@@ -41,3 +41,16 @@ int serial_is_transmit_fifo_empty(unsigned int com)
 {
     return inb(SERIAL_LINE_STATUS_PORT(com)) & 0x20;
 }
+
+void serial_write(char *text, unsigned int len)
+{
+    serial_configure_baud_rate(1, 1);
+    serial_configure_line(1);
+    serial_configure_buffers(1);
+    serial_configure_modem(1);
+    if (serial_is_transmit_fifo_empty(1)) {
+        unsigned int i;
+        for (i=0; i<len; i++)
+            outb(SERIAL_DATA_PORT(1), text[i]);
+    }
+}

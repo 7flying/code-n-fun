@@ -29,5 +29,8 @@ run: os.iso
 clean:
 	rm -rf *.o kernel.elf os.iso
 
+cleantemp:
+	rm -rf *~
+
 check-syntax:
 	gcc -o .nul -S ${CHK_SOURCES}
