@@ -106,3 +106,35 @@ Where:
  we are sending the lower bits.
  * Port ```0x3D5``` along with a value sends the corresponding bits' value.
 
+#### Serial Ports
+
+Serial ports are controlled via I/O ports, and they need to be configured first.
+Baud rate (speed used to send data), parity bit, stop bits and the number of
+bits that represent a unit of data are the things to configure.
+
+See [*Serial Programming*](https://en.wikibooks.org/wiki/Serial_Programming/8250_UART_Programming#UART_Registers)
+and [*Serial Ports*](http://wiki.osdev.org/Serial_ports) for more info.
+
+###### Line configuration
+
+It determines how data is being set over the line, it uses the *line command
+port* of the serial port. Speed and how the data should be sent must be
+configured.
+
+See ```serial_configure_baud_rate``` and ```serial_configure_line```
+on ```serial.h```.
+
+###### Buffer configuration
+
+When data needs to be transmitted it is placed on a FIFO queue that acts like
+a buffer. We need to configure how many bytes are going to be stored on the
+buffer, how large are they going to be, etc.
+
+See ```serial_configure_buffers``` on ```serial.h```.
+
+###### Modem configuration
+
+The modem is used to enable flow control.
+
+See ```serial_configure_modem``` on ```serial.h``.
+
