@@ -21,56 +21,18 @@
 #define SERIAL_LINE_ENABLE_DLAB 0x80
 
 /**
- * serial_configure_baud_rate:
- * Sets the speed of the specified serial port to the division of the default
- * speed by the divisor.
- * The default speed is 115200 bits/s.
- * @param com - COM port to configure
- * @param divisor - the divisor to set the speed
+ * serial_init:
+ * Initialises the given COM port with the default configuration
+ * @param com - COM to initialise
  */
-void serial_configure_baud_rate(unsigned short com, unsigned short divisor);
-
-/**
- * serial_configure_line:
- * Configures the line of the given serial port, it is set with a data length of
- * 8 bits, no parity bits, one stop bit and a break control.
- * @param com - COM port to configure
- */
-void serial_configure_line(unsigned short com);
-
-/**
- * serial_configure_buffers:
- * Configures the buffers of the specified serial port, it is set to enable 3
- * bytes of FIFO buffers, 16 bytes large, clears both receiver and transmitter
- * FIFO queues
- * @param com - COM port to configure
- */
-void serial_configure_buffers(unsigned short com);
-
-/**
- * serial_configure_modem:
- * Configures the modem port of the given serial port, it is set to RTS (Ready
- * To Transmit) and DTR (Data Terminal Ready).
- * @param com - COM port to configure
- */
-void serial_configure_modem(unsigned short com);
-
-/**
- * serial_is_transmit_fifo_empty:
- * Checks whether the transmit FIFO queue is empty or not for the specified COM
- * port.
- * @param com - COM port to check
- * @return 0 if FIFO not empty
- *         1 if FIFO empty
- */
-int serial_is_transmit_fifo_empty(unsigned int com);
-
+void serial_init(unsigned int com);
 
 /**
  * serial_write:
  * Writes the contents of buf of length len to the serial.
  * @param text - string to write
  * @param len - write up to len.
+ * @param com - com port to write to
  */
-void serial_write(char *text, unsigned int len);
+void serial_write(char *text, unsigned int len, unsigned int com);
 #endif /* _SERIAL_H_ */
