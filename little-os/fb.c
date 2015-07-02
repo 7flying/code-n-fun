@@ -3,7 +3,17 @@
 #include "colours.h"
 
 
-void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
+/**
+ * fb_write_cell:
+ * Writes a character with the specified foreground and background in the
+ * framebuffer at position i in the framebuffer.
+ * @param i - location in the framebuffer
+ * @param c - char to print
+ * @param fg - foreground colour
+ * @param bg - background colour
+ */
+static void
+fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
 {
     char *fb = (char *) 0x000B8000;
     fb[i] = c;
