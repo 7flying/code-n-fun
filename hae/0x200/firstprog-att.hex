@@ -1,0 +1,20 @@
+
+a.out:     file format elf32-i386
+
+0804841d <main>:
+ 804841d:	55                   	push   %ebp
+ 804841e:	89 e5                	mov    %esp,%ebp
+ 8048420:	83 e4 f0             	and    $0xfffffff0,%esp
+ 8048423:	83 ec 20             	sub    $0x20,%esp
+ 8048426:	c7 44 24 1c 00 00 00 	movl   $0x0,0x1c(%esp)
+ 804842d:	00 
+ 804842e:	eb 11                	jmp    8048441 <main+0x24>
+ 8048430:	c7 04 24 e0 84 04 08 	movl   $0x80484e0,(%esp)
+ 8048437:	e8 b4 fe ff ff       	call   80482f0 <puts@plt>
+ 804843c:	83 44 24 1c 01       	addl   $0x1,0x1c(%esp)
+ 8048441:	83 7c 24 1c 09       	cmpl   $0x9,0x1c(%esp)
+ 8048446:	7e e8                	jle    8048430 <main+0x13>
+ 8048448:	b8 00 00 00 00       	mov    $0x0,%eax
+ 804844d:	c9                   	leave  
+ 804844e:	c3                   	ret    
+ 804844f:	90                   	nop
