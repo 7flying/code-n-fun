@@ -24,7 +24,7 @@ There are three types of unconditional branches: *jumps*, *calls* and
   program.
 
 
-#### *Jumps*
+### *Jumps*
 
 The instuction format is as follows:
 
@@ -99,7 +99,7 @@ Disassembly of section .text:
 ```
 
 
-#### *Calls*
+### *Calls*
 
 Since calls *remember* where they jumped from and can return there, they are
 made using two instructions: first, the ```call``` instruction is used to jump
@@ -136,7 +136,7 @@ a call (to a C style function, such as ```exit``` or ```printf```):
    For instance, if you are using the  ```printf``` function with two 32-bit
    values add 8 to the ```ESP``` register.
 
-###### *Local* functions (without parameters)
+#### *Local* functions (without parameters)
 
 To make a local function we must remember the return address, do whatever we
 need to do as a function, and then return.
@@ -164,9 +164,9 @@ location.
 
 The common practice to implement a function is the following one:
 
-1. We are going to save the ```ESP`` register value to the ```EBP``` register;
-   but before doing that we are going to save the original ```EBP``` value (to
-   avoid corruption if it was needed) to the stack.
+1. We are going to save the ```ESP``` register value to the ```EBP``` register;
+but before doing that we are going to **save the original ```EBP``` value to the
+stack** (to avoid corruption if the register was needed).
 
    ```GAS
    pushl %ebp
@@ -184,15 +184,15 @@ The common practice to implement a function is the following one:
   ----------------
  |      ~         |
   ---------------- 
- |   Param 3      |
+ |   Param 3      | 16(%ebp)
   ----------------
- |   Param 2      |
+ |   Param 2      | 12(%ebp)
   ----------------
- |   Param 1      |
+ |   Param 1      | 8(%ebp)
   ----------------
- | Return address |
+ | Return address | 4(%ebp)
   ----------------
- | Some EBP Value | <--- ESP
+ | Some EBP Value | <--- ESP (%ebp) 
   ----------------
 ```
 
@@ -210,7 +210,7 @@ The common practice to implement a function is the following one:
 
 You can see an example at ```calltest.s```.
 
-###### Function template
+##### Function template
 
 Wrapping up: use the following template for your functions.
 
@@ -224,7 +224,7 @@ function_name_label:
 	ret
 ```
 
-#### *Interrupts*
+### *Interrupts*
 
 There are two types: *software* and *hardware* interrupts.
 
@@ -358,7 +358,7 @@ and lower keywords are used.
 See ```cmptest.s``` for an example.
 
 
-#### Examples of using the flag bits
+### Examples of using the flag bits
 
 1. Zero flag: is used by ```JE```, ```JNE```, ```JZ``` and ```JNZ```
    instructions. You can set it by the use of a mathematical instruction such
@@ -418,8 +418,8 @@ See ```cmptest.s``` for an example.
    ```
 
    See ```carrytest.s``` for a complete example (remember to add the ```--32```
-   option to the assembler and mode ```-m elf_i386``` in the linker if you are in
-   a 64-bit architecture).
+   option to the assembler and mode ```-m elf_i386``` in the linker if you are
+   in a 64-bit architecture).
 
    There are some specific instructions that may be used to modify the carry
    flag:
@@ -431,7 +431,7 @@ See ```cmptest.s``` for an example.
    |```STC``` | Set the carry flag |
 
 
-## Loops
+### Loops
 
 Let's see how loops are made in assembly using the loop instruction family.
 
@@ -457,4 +457,64 @@ set ```ECX``` to a negative or zero value it will decrease until the register
 overflows. This is where the ```JECXZ``` (jump if the ```ECX``` register is
 zero) instruction comes in handy.
 
+
+### If statements
+
+Follow the following template:
+
+```
+if:
+   <condition>
+   ; jump to else if the condition is false
+   jxx else
+   <do your stuff if condition is true>
+else:
+   <do your else stuff>
+end:
+```
+
+### For statements
+
+Use the following template:
+
+```
+for:
+   <condition>
+   ; jump to code if the condition is true
+   jxx else
+   jmp end
+code:
+   <do your stuff>
+   <increment counter>
+   jmp for
+end:
+```
+
+## Optimizing branch instructions
+
+### Branch prediction
+
+The processor tries to predict the next instruction to be processed in its
+out-of-order engine as follows:
+
+* For *unconditional branches*, the prediction is pretty easy, however such
+instruction may not be available if the jump is very long. When the
+instructions is not available in the prefetch cache, it is cleared and reloaded
+with the instructions of the new location (huge cost).
+
+* For *conditional branches*, the branch prediction algorithm uses the following
+rules:
+    1. Backward branches are assumed to be taken.
+    2. Forward branches are assumed not to be taken.
+    3. Branches previously taken are taken again.
+
+### Optimizing tips
+
+1. Eliminate branches. Generally it is better to duplicate some instructions
+rather than using jumps.
+2. Code predictable branches first. Place the code that is most likely to be
+taken as the fall-through of the jump forward statement. If using backward
+branches, use the backward path as the most taken path.
+3. Unroll loops. Eliminate small loops whenever possible, but try not no fill
+all the instruction prefetch cache.
 
