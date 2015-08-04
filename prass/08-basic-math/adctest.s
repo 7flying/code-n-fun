@@ -1,4 +1,4 @@
-
+    # adctest.s - example of the adc instruction
     .section .data
 data1:
     .quad 233456789
