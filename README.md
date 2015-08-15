@@ -41,7 +41,7 @@ to learn by example.
     + [rest-knockout](https://github.com/7flying/code-n-fun/tree/master/rest-knockout):
       Simple tutorial about Knockout, later I used Knockout for the frontend
       of [Yil-Pil](https://github.com/7flying/yil-pil).
-* General programming language stuff:
+* General programming languages' stuff:
     + [rusty-rust](https://github.com/7flying/code-n-fun/tree/master/rusty-rust):
       Improve my rusty Rust (in progress).
 * Else: 
