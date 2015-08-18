@@ -40,3 +40,32 @@ will appear in *big-endian*.
   ```
 
 ## Unsigned integers
+
+Unsigned integers can have the following sizes: byte, word (16 bits),
+doubleword (32 bits) and quadword (64 bits). They are stored in
+consecutive bytes.
+
+## Signed integers
+
+The IA-32 platform uses the two's complement (one's complement and add
+one) method to represent signed integers.
+
+See ```inttest.s```.
+
+# Extending integers
+
+When we are converting an unsigned integer value to a large bit size,
+we must ensure that all the leading bits are zero. We can use two
+instructions:
+
+```GAS
+movl $0, %ebx
+movw %ax, %ebx
+```
+
+Or, use the ```MOVZX``` instruction. This instruction moves a smaller
+unsigned integer value (in memory or in a register) to a larger-sized
+unsigned integer value (only in a register).
+
+See ```movzxtest.s```.
+

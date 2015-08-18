@@ -5,12 +5,12 @@ data1:
 data2:
     .int 2
     .section .text
-    .globl _start
-_start:
+    .globl main
+main:
     fbld data1
     fimul data2
     fbstp data1
     movl $1, %eax
     movl $0, %ebx
-    int %0x80
+    int $0x80
     
