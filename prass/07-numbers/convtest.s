@@ -8,8 +8,8 @@ value2:
 data:
     .lcomm data, 16
     .section .text
-    .globl _start
-_start:
+    .globl main
+main:
     cvtps2dq value1, %xmm0
     cvttps2q value1, %xmm1
     cvtdq2ps value2, %xmm2

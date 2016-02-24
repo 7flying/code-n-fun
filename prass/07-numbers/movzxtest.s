@@ -1,7 +1,7 @@
     # movzxtest.s - Test the strange movzx instruction
     .section .text
-    .globl _start
-_start:
+    .globl main
+_main:
     nop
     movl $279, %ecx
     movzz %cl, %ebx

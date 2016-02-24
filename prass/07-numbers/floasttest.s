@@ -7,8 +7,8 @@ value2:
     .section .bss
     .lcomm data, 8
     .section .text
-    .globl _start
-_start:
+    .globl main
+main:
     flds value1
     flds value2
     fstl data

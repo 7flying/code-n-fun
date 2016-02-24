@@ -1,7 +1,7 @@
     # movsxtest - Example of movsx instruction
     .section .text
-    .globl _start
-_start:
+    .globl main
+main:   
     movw $-79, %cx
     movl $0, %ebx
     movw %cx, %bx

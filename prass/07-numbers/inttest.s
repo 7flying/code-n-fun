@@ -1,10 +1,10 @@
-    # inttest - Test signed integers
+    # inttest.s - Test signed integers
     .section .data
 data:
     .int -45
     .section .text
-    .globl _start
-_start:
+    .globl main
+main:
     nop
     movl $-345, %eax
     movw $0xffb1, %dx
