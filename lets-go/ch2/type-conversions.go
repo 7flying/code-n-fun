@@ -1,4 +1,4 @@
-package main
+package typeconversions
 
 func main() {
 	var x int = 10

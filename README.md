@@ -44,6 +44,7 @@ to learn by example.
 * General programming languages' stuff:
     + [rusty-rust](https://github.com/7flying/code-n-fun/tree/master/rusty-rust):
       Improve my rusty Rust (in progress).
+    + [lets-go](https://github.com/7flying/code-n-fun/tree/master/lets-go): Go stuff.
 * Else: 
     + [collective-intelligence](https://github.com/7flying/code-n-fun/tree/master/collective-intelligence):
       Book by the name of 'Programming Collective Intelligence' (in progress).

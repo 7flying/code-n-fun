@@ -129,9 +129,83 @@ variables do not match.
 
 ### var VS :=
 
-1. ``var`` explicit type and an assignment:
+* ``var`` declarations
 
-    ```go
-    var x int = 10
-    ```
-2. 
+    1. ``var`` explicit type and an assignment:
+    
+        ```go
+        var x int = 10
+        ```
+        To declare it and assign it the zero value we can skip the ``=``
+        ```go
+            var x int
+        ```
+        
+    2. If the right hand side is the expected default type we can ignore the type:
+    
+        ```go
+        var x = 10
+        ```
+    3. We can declare multiple variables at once:
+       ```go
+       var x, y int = 10, 20
+       ```
+       and assign them the zero value at once:
+       ```go
+       var x, y int
+       ```
+       they can also be of different types:
+       ```go
+       var x, y = 10, "hello"
+       ```
+    4. We can declare multiple variables at once wrapping them in a *declaration
+    list*:
+        ```go
+        var (
+            x int
+            y = 20
+            z int = 30
+            d, e = 40, "hello"
+            f, g string
+            )
+        ```
+* ``:=`` declarations
+    1. Within a function use the ``:=``operator to replace a ``var``
+       declaration that uses type inference.
+       ```go
+       var x = 10
+       x:= 10
+       ```
+    2. We can declare multiple variables at once:
+       ```go
+       var x, y = 10, "hello"
+       x, y := 10, "hello"
+       ```
+    3. It allows us to *assign values* to existing variables:
+       ```go
+       x := 10
+       x, y := 30, "hello"
+       ```
+    **-->** it is not legal to use ``:=``at package level, so if we are
+       declaring a variable there, we must use ``var``.
+   
+**-->** When initializing a variable to its zero value use ``var x int``
+**-->** When assigning an untyped constant or a literal to a variable and the
+default type is not the type that we want, use the long ``var`` declaration
+form e.g. ``var x byte = 20``.
+     
+### Using const
+
+``const`` is used to declare a value immutable. They can only hold values that
+the compiler can figure out at compile time.
+
+They can be: numeric literals, ``true`` and ``false``, strings, runes, built-in
+functions ``complex``, ``real``, ``imag``, ``len`` and ``cap``, expressions
+that consist of operators and the preceding values (``const x = 20 * 10``).
+
+**->** Go doesn't have a way to specify that a value calculated at runtime is
+immutable.
+
+### Typed and untyped constants
+
+31
