@@ -16,6 +16,20 @@ The lexer inserts a semicolon after these tokens: identifiers (``int``), basic
 literals (numbers or string constants), break, continue, fallthrough, return,
 ++, --, ), (, }.
 
+# Primitive types and declarations
+
+1. [Built-in types](#built-in-types)
+1.1. [Literals](#literals)
+1.2. [Booleans](#booleans)
+1.3. [Numeric types](#numeric-types)
+1.4. [Strings and Runes](#strings-and-runes)
+1.5. [Explicit type conversion](#explicit-type-conversion)
+2. [var VS :=](#var-vs-)
+3. [Using const](#using-const)
+4. [Typed and untyped constants](#typed-and-untyped-constants)
+5. [Unused variables](#unused-variables)
+6. [Naming variables and constants](#naming-variables-and-constants)
+
 ## Built-in types
 
 Go inserts a default *zero value* to any variable that is declared but not
@@ -127,7 +141,7 @@ TODO: Complete notes further on.
 Go doesn't allow *automatic type promotion*, we must use *type conversion* when
 variables do not match.
 
-### var VS :=
+## var VS :=
 
 * ``var`` declarations
 
@@ -188,13 +202,15 @@ variables do not match.
        ```
     **-->** it is not legal to use ``:=``at package level, so if we are
        declaring a variable there, we must use ``var``.
-   
-**-->** When initializing a variable to its zero value use ``var x int``
-**-->** When assigning an untyped constant or a literal to a variable and the
-default type is not the type that we want, use the long ``var`` declaration
+
+**-->** The most common declaration style within functions is ``:=``.
+
+**-->** Avoid ``:=`` when: 1) initializing a variable to its zero value use
+``var x int``; 2) assigning an untyped constant or a literal to a variable and
+the default type is not the type that we want, use the long ``var`` declaration
 form e.g. ``var x byte = 20``.
      
-### Using const
+## Using const
 
 ``const`` is used to declare a value immutable. They can only hold values that
 the compiler can figure out at compile time.
@@ -203,9 +219,164 @@ They can be: numeric literals, ``true`` and ``false``, strings, runes, built-in
 functions ``complex``, ``real``, ``imag``, ``len`` and ``cap``, expressions
 that consist of operators and the preceding values (``const x = 20 * 10``).
 
-**->** Go doesn't have a way to specify that a value calculated at runtime is
+**-->** Go doesn't have a way to specify that a value calculated at runtime is
 immutable.
 
-### Typed and untyped constants
+**-->** The compiler allows us to create unread constants (see Unused
+variables) with ``const`` since constants in Go are calculated at compile
+time.
 
-31
+## Typed and untyped constants
+
+Constants can be typed or untyped. Untyped constants have no type of their own
+but they do have a default type that is used when no other type can be
+inferred.
+
+Leaving a constant untyped gives us more flexibility since a typed constant can
+only be directly assigned to a variable of that type.
+
+Untyped constant and assignments:
+```go
+const x = 10
+var y int = x
+var z float64 = x
+var d byte = x
+```
+
+## Unused variables
+
+Is a compile-time error to declare a local variable and not reading its value.
+
+## Naming variables and constants
+
+Go uses ``camelCase`` for variable names
+
+**-->** Go uses the case of the first letter in the name of a package-level
+declaration to determine if the item is accessible outside the package.
+
+# Composite types
+
+1. [Arrays](#arrays)
+2. [Slices](#slices)
+2.1. [len](#len)
+2.2. [append](#append)
+2.3. [Capacity](#capacity)
+2.4. [make](#make)
+
+## Arrays
+
+Different ways to declare an array:
+
+1. ``var x[3]int``: array of three ``int``s, they're initialized to the zero
+   value for an ``int`` (zero)
+2. *Array literal*: ``var x = [3]int{10, 20, 30}``. This specifies the initial
+   values of the array.
+   
+   In this case we can skip specifying the number of elements: ``var x=
+   [...]int{10, 20, 30}``
+3. *Sparse array*: aka an array with most of its elements set to their zero
+   value, we only need to specify which values are not zero. To do so we
+   specify the index and its value.
+   
+   ``var x = [12]int{1, 5: 4, 6, 10: 100, 15}`` which will give us ``[1, 0, 0,
+   0, 0, 4, 6, 0, 0, 0, 100, 15]``
+
+We can use ``==`` and ``!=`` to compare arrays.
+```go
+var x = [...]int{1, 2, 3}
+var y = [3]int{1, 2, 3}
+fmt.Println(x == y) // true
+```
+
+Go only has one-dimensional arrays but we can simulate multidimensional arrays:
+``var x[2][3]int``: x is an array of length 2 whose type is an array of
+``int``s of length 3.
+
+We read and write arrays using bracket syntax:
+```go
+x[0] = 10
+fmt.Println(x[2])
+fmt.Println(len(x))
+```
+
+**-->** Go considers the *size* of the array to be part of the *type*, so an
+array of type ``[3]int`` is different from an array of type ``[2]int``.
+
+**-->** Thereby, we cannot use a variable to specify the size of an array,
+since types must be resolved at compile time, not at runtime.
+
+**-->** We cannot use a type conversion to convert arrays of different sizes to
+identical types.
+
+## Slices
+
+In slices the length is not part of the type, removing the limitation that
+arrays had.
+
+The zero value for a slice is ``nil``. It is an identifier that represents the
+lack of value for some types. ``nil`` has no type, so it can be assigned or
+compared against values of different types.
+
+Declaring slices:
+
+1. *Slice literal*: ``var x = []int{10, 20, 30}``. Note that there are no ``[...]`` inside the
+   brackets, if there were it would be an array instead of a slice.
+
+   As in arrays, we can also specify the indexes in which the values are not
+   the zero value: ``var x = []int{1, 5: 4, 6, 10: 100, 15}`` The slice has 12
+   ``int``s with the following values: ``[1, 0, 0, 0, 0, 4, 6, 0, 0, 0, 100,
+   15]``
+2. We can declare a slice without using a literal: ``var x []int``.
+   Since no values are assigned, ``x`` is assigned the zero value for a slice,
+   which was ``nil``.
+3. We can also simulate multidimensional slices: ``var x[][]int``.
+
+Read and write slices using the bracket syntax:
+
+```go
+x[0] = 10
+fmt.Println(x[0])
+```
+
+A slice *is not comparable*. It is a compile-time error to use ``==`` or
+``!=`` in slices. You can only compare a slice with ``nil``.
+
+```go
+var x []int
+fmt.Println(x == nil) // true
+```
+
+### len
+
+When you pass a ``nil`` slice to ``len`` it returns 0.
+
+### append
+
+``append`` is used to grow slices, we can use it with ``nil`` slices or slices that already
+have elements:
+
+```go
+var x []int
+x = append(x, 10)
+// or:
+var x = []int{1, 2, 3}
+x = append(y, 4)
+```
+We can append more than one value at a time: ``x = append(x, 5, 6, 7)``
+
+We can append one slice onto another using the ``...``operator to expand the
+source slice into individual values:
+
+```go
+y := []int{20, 30, 40}
+x = append(x, y...)
+```
+
+**-->** It is a compile-time error if we do not assign the value returned from ``append``.
+
+### Capacity
+
+The built-in ``cap`` function returns the current capacity of the slice, which
+is the number of consecutive memory locations reserved.
+
+39
