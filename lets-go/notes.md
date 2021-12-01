@@ -19,11 +19,11 @@ literals (numbers or string constants), break, continue, fallthrough, return,
 # Primitive types and declarations
 
 1. [Built-in types](#built-in-types)
-1.1. [Literals](#literals)
-1.2. [Booleans](#booleans)
-1.3. [Numeric types](#numeric-types)
-1.4. [Strings and Runes](#strings-and-runes)
-1.5. [Explicit type conversion](#explicit-type-conversion)
+    1. [Literals](#literals)
+    2. [Booleans](#booleans)
+    3. [Numeric types](#numeric-types)
+    4. [Strings and Runes](#strings-and-runes)
+    5. [Explicit type conversion](#explicit-type-conversion)
 2. [var VS :=](#var-vs-)
 3. [Using const](#using-const)
 4. [Typed and untyped constants](#typed-and-untyped-constants)
@@ -258,10 +258,18 @@ declaration to determine if the item is accessible outside the package.
 
 1. [Arrays](#arrays)
 2. [Slices](#slices)
-2.1. [len](#len)
-2.2. [append](#append)
-2.3. [Capacity](#capacity)
-2.4. [make](#make)
+   1. [len](#len)
+   2. [append](#append)
+   3. [Capacity](#capacity)
+   4. [make](#make)
+   5. [Declaring slices](#declaring-slices)
+   6. [Slicing slices](#slicing-slices)
+   7. [Converting arrays to slices](#converting-arrays-to-slices)
+   8. [copy](#copy)
+3. [Strings and runes and bytes](#strings-and-runes-and-bytes)
+4. [Maps](#maps)
+   1. [The comma ok idiom](#the-comma-ok-idiom)
+   2. [U]
 
 ## Arrays
 
@@ -269,11 +277,16 @@ Different ways to declare an array:
 
 1. ``var x[3]int``: array of three ``int``s, they're initialized to the zero
    value for an ``int`` (zero)
-2. *Array literal*: ``var x = [3]int{10, 20, 30}``. This specifies the initial
+2. *Array literal*: This specifies the initial
    values of the array.
+   ```go
+   var x = [3]int{10, 20, 30}
+   ```
    
-   In this case we can skip specifying the number of elements: ``var x=
-   [...]int{10, 20, 30}``
+   In this case we can skip specifying the number of elements:
+   ```go
+   var x = [...]int{10, 20, 30}
+   ```
 3. *Sparse array*: aka an array with most of its elements set to their zero
    value, we only need to specify which values are not zero. To do so we
    specify the index and its value.
@@ -319,17 +332,30 @@ compared against values of different types.
 
 Declaring slices:
 
-1. *Slice literal*: ``var x = []int{10, 20, 30}``. Note that there are no ``[...]`` inside the
-   brackets, if there were it would be an array instead of a slice.
+1. *Slice literal*:
+   ```go
+   var x = []int{10, 20, 30}
+   ```
+   Note that there are no ``[...]`` inside the  brackets, if there were it would be an array instead of a slice.
 
    As in arrays, we can also specify the indexes in which the values are not
-   the zero value: ``var x = []int{1, 5: 4, 6, 10: 100, 15}`` The slice has 12
-   ``int``s with the following values: ``[1, 0, 0, 0, 0, 4, 6, 0, 0, 0, 100,
+   the zero value:
+   ```go
+   var x = []int{1, 5: 4, 6, 10: 100, 15}
+   ```
+   The slice has 12  ``int``s with the following values: ``[1, 0, 0, 0, 0, 4, 6, 0, 0, 0, 100,
    15]``
-2. We can declare a slice without using a literal: ``var x []int``.
+2. We can declare a slice without using a literal:
+   ```go
+   var x []int
+   ```
    Since no values are assigned, ``x`` is assigned the zero value for a slice,
    which was ``nil``.
-3. We can also simulate multidimensional slices: ``var x[][]int``.
+  
+We can also simulate multidimensional slices: 
+```go
+var x[][]int
+```
 
 Read and write slices using the bracket syntax:
 
@@ -379,4 +405,255 @@ x = append(x, y...)
 The built-in ``cap`` function returns the current capacity of the slice, which
 is the number of consecutive memory locations reserved.
 
-39
+The capacity can be larger than the length, when the length reaches the
+capacity and we try to ``append`` more values, the Go runtime will allocate a
+new slice with larger capacity. The Go runtime doubles the size of the slice
+when the capacity is less than 1024, and it grows it by at least 25%
+afterwards. 
+
+### make
+
+The ``make`` function allows us to specify the type, length and optionally the
+capacity of the slice:
+
+```go
+x := make([]int, 5) // length of 5, capacity of 5
+```
+
+The elements 0-4 are present and are all initialized to the zero value.
+
+We can also specify an initial capacity:
+```go
+x := make([]int, 0, 10) // length of 0, capacity of 10
+```
+In this example the slice is non-nil and a capacity of 10. We can append values
+to it but we cannot index into it unless we add values.
+
+### Declaring slices
+
+**-->** Goal: minimise the number of times the slice needs to grow.
+
+1. To declare a ``nil`` slice (e.g. when returning from a function):
+    ```go
+    var data[] int
+    ```
+2. Empty slice:
+   ```go
+   var x = []int{}
+   ```
+    This is a non-nil zero-length slice.
+3. Slice literal when we have some starting values:
+    ```go
+    data := []int{2, 3, 4, 5}
+    ```
+4. When we know the size of the data, but we don't know what data it is going
+   to be in the slice we would use ``make``.
+   
+   Then, we might specify a nonzero length or a zero length with nonzero
+   capacity.
+   
+   - If the slice is going to be a buffer: nonzero length.
+   - In other cases use ``make`` with zero length and the required
+     capacity. Then we can use ``append`` to add items to the slice.
+     ```go
+     x := make([]int, 0, 10)
+     x = append(x, 5,6,7,8)
+     ```
+### Slicing slices
+
+A *slice expression* creates a slice from another slice, we need to use the
+``[x:y]`` operator. If ``x`` is not specified, its default value is 0; if ``y``
+is not specified, its default value is the end of the slice. ``x`` is taken
+from the slice up to ``y - 1``
+
+**->** When we make a slice from a slice **memory is shared**, we **are not
+making a copy**.
+
+The capacity of a sub-slice is: ``cap(original) - x ``
+
+Never use ``append`` with a sub-slice or make sure that it doesn't cause an
+overwrite by using a *full slice expression*: ``[x:y:z]``, where ``z``
+indicates the last position in the parent's capacity that is available for the
+sub-slice. The capacity of the sub-slice is ``z-x``.
+
+### Converting arrays to slices
+
+You can take a slice from an array using a slice expression. Taking a slice
+from an array has the same memory-sharing properties as taking a slice from a
+slice.
+
+```go
+x := [4]int{5, 6, 7, 8}
+y := x[:2]
+z := x[2:]
+x[0] = 10
+// x: 10 6 7 8
+// y: 10 6
+// z: 7 8
+```
+
+### copy
+
+To create a slice that is independent of the original we use: ``copy(dest,
+src)`` (returns the number of elements copied). It is limited by whichever
+slice is smaller.
+```go
+x := []int{1, 2, 3, 4}
+y := make([]int, 4)
+num := copy(y, x)
+fmt.Println(y, num)
+```
+
+So for instance, due to the size limitation here we would only copy two
+elements (since destination is smaller):
+```go
+x := []int{1, 2, 3, 4}
+y := make([]int, 2)
+copy(y, x)
+```
+
+We can also copy from the middle of the source:
+```go
+x := []int{1, 2, 3, 4}
+y := make([]int, 2)
+copy(y, x[2:])
+```
+
+And also overlapping sections (first is read, and then written):
+```go
+x := []int{1, 2, 3, 4}
+copy(x[:3], x[1:]) // x now has: 2 3 4 4
+```
+
+We can also use ``copy`` with arrays specifying a slice of the array.
+
+## Strings and runes and bytes
+
+Go uses a sequence of bytes to represent a string, by default it is assumed
+that the string is composed of a sequence of UTF-8-encoded *code points*.
+
+**-->** **UTF-8 info.** A *code point* is what we use to represent a character,
+and in UTF-8 we (usually) use one byte (8 bits) for that. For Unicode
+characters whose values are below 128 (letters, numbers and punctuation symbols
+used in English) we need only 1 byte, but UTF-8 might expand to a maximum of 4
+bytes to represent some Unicode code points that have larger values. This means
+that we cannot randomly access a string encoded with UTF-8 since each code
+point might be between 1 and 4 bytes long.
+
+```go
+var s string = "Hello there"
+var b byte = s[6]
+var s2 string = s[2:4]
+```
+
+Strings *are immutable*, so when making substrings we won't have the memory
+sharing problems that we had with slices. But, we need to take into account
+that *a string is a sequence of bytes*, while a code point in UTF-8 might be
+from 1 to 4 bytes long, thereby when dealing with other languages other than
+English, emojis or other stuff we might run into problems since each code point
+might have a different size.
+
+A single ``rune`` or ``byte`` can be converted to a string:
+
+```go
+var a rune = 'A'
+var ss string = string(a)
+var b byte = 'A'
+var sss string = string(b)
+fmt.Println(a, ss, b, sss) // 65 A 65 A
+```
+**-->** Remember that ``rune`` is an alias for the ``int32`` type.
+
+
+Example: let's convert the integer 65 to a string "65"
+```go
+var x int = 65
+var y = string(x)
+fmt.Println(y) // This will print "A", not "65"
+var rSixtyfive rune = rune(sixtyFive)
+fmt.Println(rSixtyfive) // this prints "65"
+```
+**-->** To extract substrings and code points from strings we need to use the
+functions in the ``strings`` and ``unicode/utf8`` packages in the standard
+library.
+
+## Maps
+
+Map types are written as ``map[keyType]valueType``.
+
+The zero value for a map is ``nil`` and a ``nil`` map has a length of zero. We
+can read a ``nil`` map, it will return the zero value for the map's value type,
+but writing to a ``nil`` map will cause a panic.
+
+1. Set map to its zero value:
+   ```go
+   var nilMap map[string]int
+   ```
+2. *Empty map literal*, with a ``:=`` declaration:
+   ```go
+   totalWins := map[string]int{}
+   ```
+    This an empty map literal, it has a length of 0, but we can read and write
+   into it.
+   
+   This a *nonempty map literal*:
+   
+   ```go
+   // this map takes a string as key and has a slice of strings 
+   // for its value
+   teams := map[string][]string {
+       "One": []string{"Player 1", "Player 2"},
+       "Two": []string{"Player 3"},
+   }
+   ```
+3. Map with a default size
+   ```go
+   ages := make(map[int][]string, 10)
+   ```
+    This map has a length of 0, and it can grow to hold more than the initial
+   size.
+   
+**-->** Maps are not comparable. We can check if they're equal to ``nil``, but
+that's it.
+
+**-->** The key type must have an ``==`` (equality operator), otherwise it
+cannot be the key of the map (no maps, slices or funcs as keys).
+
+**-->** The ``map`` that Go uses it is a *hash map*.
+
+We read and write to a map like so:
+
+```go
+totalWins := map[string]int{}
+totalWins["Team A"] = 1
+totalWins["Team B"] = 2
+fmt.Println(totalWins["Team A"])
+totalWins["Team C"]++ // the default value of int is 0, we can do this
+fmt.Println(totalWins["Team C"])
+``` 
+
+We delete key-value pairs with the built-in ``delete`` function, it takes the
+key of the key-value pair that we want to delete. If the key doesn't exist or
+if the map is ``nil`` nothing happens.
+```go
+m := map[string]int {
+    "hello": 4,
+    "world": 5,
+}
+delete(m, "hello")
+```
+
+### The comma ok idiom
+
+Since maps return the zero value when we ask for a key that it is not in the
+map, we need to differentiate if a key is in a map (and it could be the zero
+value for that type of value) or not. To do this we use the *comma ok idiom*.
+```go
+m := map[string]int{
+    "hello": 5,
+    "world": 0,
+}
+v, ok = m["hello"]
+
+```
+
