@@ -269,7 +269,10 @@ declaration to determine if the item is accessible outside the package.
 3. [Strings and runes and bytes](#strings-and-runes-and-bytes)
 4. [Maps](#maps)
    1. [The comma ok idiom](#the-comma-ok-idiom)
-   2. [U]
+   2. [Using maps as sets](#using-maps-as-sets)
+5. [Structs](#structs)
+   1. [Anonymous structs](#anonymous-structs)
+   2. [Comparing and converting structs](#comparing-and-converting-structs)
 
 ## Arrays
 
@@ -585,7 +588,7 @@ The zero value for a map is ``nil`` and a ``nil`` map has a length of zero. We
 can read a ``nil`` map, it will return the zero value for the map's value type,
 but writing to a ``nil`` map will cause a panic.
 
-1. Set map to its zero value:
+1. ``var`` declaration; sets the map to its zero value (``nil``)
    ```go
    var nilMap map[string]int
    ```
@@ -657,3 +660,177 @@ v, ok = m["hello"]
 
 ```
 
+### Using maps as sets
+
+We can use maps to simulate sets (a data type that ensures there is at most one
+of a value).
+
+We use the key of the map for type that we would put into the set, and use a
+``bool`` for the value.
+
+For example:
+```go
+intSet := map[int]bool{}
+vals := []int{5, 10, 2, 5, 8, 7, 3, 9, 1, 2, 10}
+for _, v := range vals { //_:index, v: copy of the element at index
+    intSet[v] = true
+}
+fmt.Println(len(vals), len(intSet))
+fmt.Println("5?", intSet[5])
+fmt.Println("500?", intSet[500])
+if intSet[10] {
+    fmt.Println("10 is in the set")
+}
+```
+
+We can also use ``struct{}`` for the value instead of a ``bool``, since
+booleans use one byte and an empty struct uses zero bytes. However, using a
+``struct{}`` makes the code less obvious.
+
+```go
+intSet := map[int]struct{}{}
+vals := []int{5, 10, 2, 5, 8, 7, 3, 9, 1, 2, 10}
+for _, v := range vals {
+    intSet[v] = struct{}{}
+}
+if _, ok := intSet[10]; ok {
+    fmt.Println("10 is in the set")
+}
+```
+
+## Structs
+
+We can defined a struct inside or outside a function, we do it like this:
+
+```go
+type person struct {
+    name string
+    age int
+    pet string
+}
+```
+
+We can define variables of that type once the struct has been declared:
+
+1. ``var`` declaration. It gets the zero value for the ``person`` struct type,
+   which sets the zero value for each field type.
+   ```go
+   var fred person
+   ```
+2. *Struct literal*. It also assigns the zero value to each field.
+   ```go
+   bob := person{}
+   ```
+   *Nonempty struct literal*, there are two styles to do this:
+   
+   -With a comma-separated list of values (which requires *every* field in the
+   struct to be specified, and the values are assigned to the fields in the
+   order they were declared):
+   ```go
+   julia := person{
+       "Julia",
+       40,
+       "cat",
+   }
+   ```
+   
+   -With a style that looks like a map literal (we can specify the fields in
+   any order and we do not need to fill-in every field):
+   ```go
+   beth := person{
+       age: 30,
+       name: "Beth",
+   }
+   ```
+
+We access fields in a struct using the dotted notation:
+```go
+bob.name = "Bob"
+fmt.Println(bob.name)
+```
+
+### Anonymous structs
+
+We can declare a variable that implements a struct type without first giving
+the struct type a name:
+
+```go
+var person struct {
+    name string
+    age int
+    pet string
+}
+
+person.name = "Bob"
+person.age = 50
+person.pet = "dog"
+```
+
+Another way would be:
+```go
+pet := struct {
+    name string
+    kind string
+}{
+    name: "Fido",
+    kind: "dog",
+}
+```
+
+### Comparing and converting structs
+
+Whether or not a struct is comparable depends on the struct's fields, if all
+the fields are comparable types, then the struct is comparable, else it is not
+(we can't compare structs of different types even if all the fields are the
+same).
+
+We can perform a type conversion from one struct type to another if the fields
+of both structs have the same names, order and types.
+
+Given these two structs:
+```go
+type firstPerson struct {
+    name string
+    age int
+}
+
+type secondPerson struct {
+    name string
+    age int
+}
+```
+* We can use a type conversion to convert an instance of ``firstPerson`` to
+  ``secondPerson`` and vice versa. 
+* We can't use ``==``to compare an instance of ``firstPerson`` to
+  ``secondPerson`` and vice versa, because they are different types.
+
+Given an anonymous struct and a non-anonymous struct:
+```go
+type firstPerson struct {
+    name string
+    age int
+}
+var g struct {
+    name string
+    age int
+}
+
+f := firstPerson {
+    name: "Bob",
+    age: 50,
+}
+
+g = f
+fmt.Println(f == g) // true
+```
+
+* We can compare them without type conversion if the fields of both structs
+  have the same names, order and types.
+* We can assign between named and anonymous struct types if the fields of both
+  structs have the same names, order and types.
+
+# Blocks, shadows, and control structures
+
+1. [Blocks](#blocks)
+
+## Blocks
