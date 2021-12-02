@@ -923,8 +923,8 @@ different ways:
    In this case is a *must* to use ``:=`` to initialise variables, we cannot
    use ``var``.
    
-2. *The condition-only ``for``*. This is like a ``while`` statement in C in
-   other languages:
+2. *The condition-only ``for``*. This is like a ``while`` statement in C or
+   other languages: 
    ```go
    i := 1
    for i < 100 {
@@ -958,7 +958,7 @@ different ways:
 4. *The ``for-range`` statement*
    ```go
    evenVals := []int{2, 4, 6, 8, 10}
-   for i, v := range evenVals { // We are shadowing i here
+   for i, v := range evenVals {
        fmt.Println(i, v)
    }
    ```
@@ -1079,3 +1079,85 @@ for _, word := range words {
     }
 }
 ```
+
+# Functions
+
+1. [Declaring and calling functions](#declaring-and-calling-functions)
+
+## Declaring and calling functions
+
+```go
+func div(numerator int, denominator int) int {
+    if denominator == 0 {
+        return 0
+    }
+    return numerator / denominator
+}
+```
+
+* The types of the parameters are always needed. 
+  If we have multiple input parameters of the same type, we might group them
+  together like this:
+   ```go
+   func div(numerator, denominator int) int {
+   ```
+  
+* If a function returns a value we *must* supply a return. If it returns
+  nothing, a ``return`` statement is not needed.
+
+* Go *doesn't* have named and optional input parameters but we can simulate
+  them using ``structs``:
+  ```go
+  type MyFuncOpts struct {
+      FirstName string
+      LastName string
+      Age int
+  }
+
+  func MyFunC(opts MyFuncOpts) {
+      fmt.Println("MyFunC was called")
+  }
+
+  func main() {
+      MyFunC(MyFuncOpts {
+		  LastName: "Patel",
+		  Age: 50,
+      })
+      MyFunC(MyFuncOpts {
+          FirstName: "Joe",
+          LastName: "Smith",
+      })
+  }
+  ```
+
+* Go supports *variadic parameters*. The variadic parameter *must* be the last
+  or only parameter in the input parameter list, we indicate the variadic
+  parameter with ``...`` (three dots) before the type:
+  ```go
+  func variadicFunction(a int, vals ...int) []int {
+  . . .
+  }
+  // we would call this function like this:
+  variadicFunction(3)
+  variadicFunction(3, 2, 1)
+  a := []int{3, 4}
+  variadicFunction(1, a...) // note that we need '...' here
+  variadicFunction(1, []int{1, 2, 3}...) // as well as here
+  ```
+  We can count the values of ``vals`` using ``len(vals)``, and we can access
+  those values with a for-range: ``for _, v := range vals {``
+  
+  The variadic parameter is converted to a slice, so we can pass a slice to
+  that parameter, but we *must* put ``...`` (three dots) after the variable or
+  slice literal.
+
+* Go allows for multiple return values:
+  ```go
+  fuc divAndRemainder(numerator int, denominator int) (int, int, error) {
+      if denominator == 0 {
+          return 0, 0, errors.New("cannot divide by zero")
+      }
+      return numerator / denominator, numerator % denominator, nil
+  }
+  ```
+90
