@@ -9,6 +9,8 @@
 * Code format checker: ``go fmt``, also use ``goimports -l -w``
 * Linter: ``golint ./...``
 * Code checker: ``go vet ./...``
+* Detecting shadowed variables: ``shadow ./..``
+  Get it at: ``$ go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@latest``
 
 ## The semicolon insertion rule
 
@@ -832,5 +834,248 @@ fmt.Println(f == g) // true
 # Blocks, shadows, and control structures
 
 1. [Blocks](#blocks)
+   1. [Shadowing variables](#shadowing-variables)
+2. [if](#if)
+3. [for four ways](#for-four-ways)
+4. [switch](#switch)
+5. [Blank switches](#black-switches)
 
 ## Blocks
+
+We have the *package* block, *file* block, *function* block, within a function
+every set of braces defines another block and we also have the *universe*
+block. The universe block hosts the *predeclared identifiers* that are used as
+keywords, but in fact they're not keywords.
+
+These are the 25 keywords of Go: 
+```
+break        default      func         interface    select
+case         defer        go           map          struct
+chan         else         goto         package      switch
+const        fallthrough  if           range        type
+continue     for          import       return       var
+```
+
+So, other important *identifiers*, such as ``int, string, true, false`` and
+functions (``make``, ``close``) are defined in the *universe block*, which is
+the block that contains all other blocks.
+
+### Shadowing variables
+
+We need to be careful of these cases:
+
+```go
+func main() {
+    x := 10  // x is declared in the function block
+    if x > 5 {
+        fmt.Println(x) // 10
+        x := 5         // this statement defines and shadows the previous x
+        fmt.Println(x) // 5
+    }
+    fmt.Println(x) // 10
+}
+```
+
+We would also shadow a variable using multiple assignments since ``:=`` only
+reuses variables that are declared in the current block.
+
+```go
+x := 10
+if x > 5 {
+    x, y := 5, 20 // this shadows x again
+}
+```
+
+## if
+
+* General if-else:
+  ```go
+  n := rand.Intn(10) // don't use this as secure random number generator
+  if n == 0 {
+      fmt.Println(" is 0")
+  } else if n > 5 {
+      fmt.Println(" greater than 5")
+  } else {
+      fmt.Println (" less than 0 or less than 5, but not 0")
+  }
+  ```
+  
+* We can scope a variable to an if statement: 
+  ```go
+  if n := rand.Intn(10); n == 0 {
+      // etc
+  } else if n > 5 {
+      // etc
+  }
+  // n is not defined out of the if scope
+  ```
+## for, four ways
+
+Go only has the ``for`` keyword for looping, but it allows to use it in four
+different ways:
+
+1. *The complete C-style ``for``*:
+   ```go
+   for i := 0; i < 10; i++ {
+       fmt.Println(i)
+   }
+   ```
+   In this case is a *must* to use ``:=`` to initialise variables, we cannot
+   use ``var``.
+   
+2. *The condition-only ``for``*. This is like a ``while`` statement in C in
+   other languages:
+   ```go
+   i := 1
+   for i < 100 {
+       fmt.Println(i)
+       i = i * 2
+   }
+   ```
+
+3. *The infinite ``for`` statement*:
+   ```go
+   for {
+       // something what will be done until the infinity and beyond
+   }
+   ```
+   We can use the ``break`` and ``continue`` statements to manipulate these
+   endless loops:
+   ```go
+   i := 1
+   for {
+       fmt.Println(i)
+       i += 1
+       if i == 99 {
+           continue
+       }
+       if i == 100 {
+           break
+       }
+   }
+   ```
+
+4. *The ``for-range`` statement*
+   ```go
+   evenVals := []int{2, 4, 6, 8, 10}
+   for i, v := range evenVals { // We are shadowing i here
+       fmt.Println(i, v)
+   }
+   ```
+   We can leave out the index using ``_``:
+   ```go
+   for _, v := range evenVals {
+       fmt.Println(v)
+   }
+   ```
+   We can also get rid of the value, we don't need to put it in the range and
+   that's it:
+   ```go
+   uniqueNames := map[string]bool{"Fred": true, "Raul": true, "Wilma": true}
+   for k := range uniqueNames {
+       fmt.Println(k)
+   }
+   ```
+
+    * **->** When we are iterating over the runes of the string, we are in fact
+    iterating over *the runes*, not the *bytes*. So if we have special characters
+    we will still iterate one character at a  time.
+
+    * **->** When we use ``for-range`` we are iterating *over a copy*. Thereby,
+     modifying the value will not modify the source:
+      ```go
+      evenVals := []int{2, 4, 6, 8}
+      for _, value := range evenVals {
+          v *= 2 
+      }
+      fmt.Println(evenVals) // unmodified
+      ```
+
+## switch
+
+We have *expression switch* statements and *type switch* statements in go
+(TODO: later). We are discussing *expression switch* statements.
+
+On ``switch`` statements:
+
+- We can switch on any type that can be compared with ``==``, this is, all the
+  built-in types except slices, maps, channels, functions and structs that
+  contain fields of these types.
+
+- We can have multiple lines inside a ``case`` or ``default`` clause, and
+  they're all considered to be part of the same block. There is no need to put
+  parenthesis.
+
+- Any variables defined in a ``case`` clause's block are only visible within
+  that block.
+  ```go
+  case 5:
+      wordLen := len(word) // only visible within this case block
+  ```
+
+- There is no need for ``break`` statements in ``switch``, by default cases in
+  ``switch`` statements *do not fall through*.
+
+- We can put multiple matches in a ``case`` separated by comas:
+  ```go
+  case 1, 2, 3, 4:
+  ```
+- When we have an empty case *nothing happens*:
+   ```go
+  case 6, 7, 8, 9: // in the 6, 7, 8 and 9, nothing happens
+  case 10:
+      fmt.Println(word, "is a long word")
+  ``` 
+
+- Go has the ``fallthrough``keyword, which lets one case continue to the next one, but it is discouraged.
+- If we have a ``switch`` statement inside a ``for`` loop, if we want to break
+  out of the ``for`` loop, a label is required. Otherwise Go will assume that
+  we want to break out of the ``case``.
+  ```go
+  loop: // this label is required
+      for i := 0; i < 10; i++ {
+        switch {
+        case i%2 == 0:
+            fmt.Println(i, "is even")
+        case i%3 == 0:
+            fmt.Println(i, "is divisible by 3 but not 2")
+        case i%7 == 0:
+            fmt.Println("exit the loop!")
+            // break : this won't exit the loop unless the loop has a label!
+            break loop // this breaks out of the loop
+        default:
+            fmt.Println("deafult")
+        }
+      }
+  ```
+
+## Blank switches
+
+Go allows us to write a ``switch`` statement that doesn't specify the value
+that we're comparing against, this is called a *blank switch*. These switches
+allow us to use any boolean comparison for each ``case``.
+```go
+// this is a silly example
+a := 20
+switch {
+case a == 2:
+    // something
+case a > 10:
+    // something
+}
+```
+
+A more interesting example:
+
+```go
+for _, word := range words {
+    switch wordLen := len(word); { // take note of the ; there
+    case wordLen < 5:
+        fmt.Println(word, "is a short word")
+    case wordLen > 10:
+        fmt.Println(word, "is a long word")
+    default:
+        fmt.Println(word, "is the right lenght")
+    }
+}
+```
