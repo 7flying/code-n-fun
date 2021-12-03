@@ -1,6 +1,12 @@
 package declaringcallingfunctions
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"os"
+	"time"
+	"math/rand"
+)
 
 // MyFuncOpts is bla bla
 type MyFuncOpts struct {
@@ -22,6 +28,13 @@ func addTo(base int, vals ...int) []int {
 	return out
 }
 
+func divAndRemainder(numerator int, denominator int) (int, int, error) {
+	if denominator == 0 {
+		return 0, 0, errors.New("cannot divide by zero")
+	}
+	return numerator / denominator, numerator % denominator, nil
+}
+
 func main() {
 	myFunC(MyFuncOpts {
 		LastName: "Patel",
@@ -37,4 +50,15 @@ func main() {
 	a := []int{2, 3}
 	fmt.Println(addTo(3, a...))
 	fmt.Println(addTo(3, []int{1, 2, 3, 4, 5}...))
+
+	
+	s := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(s)
+
+	result, remainder, err := divAndRemainder(r.Intn(10), r.Intn(10))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println(result, remainder)
 }

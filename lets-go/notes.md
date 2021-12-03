@@ -1083,6 +1083,10 @@ for _, word := range words {
 # Functions
 
 1. [Declaring and calling functions](#declaring-and-calling-functions)
+2. [Functions are values](#functions-are-values)
+3. [Closures](#closures)
+4. [defer](#defer)
+5. [Go is call by value](#go-is-call-by-value)
 
 ## Declaring and calling functions
 
@@ -1151,7 +1155,7 @@ func div(numerator int, denominator int) int {
   that parameter, but we *must* put ``...`` (three dots) after the variable or
   slice literal.
 
-* Go allows for multiple return values:
+* Go allows multiple return values:
   ```go
   fuc divAndRemainder(numerator int, denominator int) (int, int, error) {
       if denominator == 0 {
@@ -1160,4 +1164,183 @@ func div(numerator int, denominator int) int {
       return numerator / denominator, numerator % denominator, nil
   }
   ```
-90
+  - We can't put parenthesis around the returned values, it is a compile-time
+    error.
+  - By convention, ``error`` is always the last or only value returned from a
+    function.
+  - All the returned values must be assigned to variables, or *all* return
+    values should be ignored.
+    If we don't want a specific value we would use ``_``.
+
+* Go has *named return values*, they are pre-declarations of variables that we
+  will use inside the function, these are initialised to their zero values:
+  ```go
+  func divAndRemainder(numerator int, denominator int) (result int, remainder  int, err error) {
+      if denominator == 0 {
+        err = erros.New("cannot divide by zero")
+        return result, remainder, err
+      }
+      result, remainder = numerator / denominator, numerator % denominator
+      return result, remainder, err
+  }
+  ```
+   
+* Go has *blank returns*, which if we have named return values and we write a
+  simple ``return`` with no values, would mean that we would return whatever
+  the named return values hold in that point:
+  ```go
+  func divAndRemainder(numerator, denominator int) (result int, remainder int, err error) {
+      if denominator == 0 {
+          err = errors.New("cannot divide by zero")
+          return // here the zero values would be returned
+      }
+      result, remainder = numerator / denominator, numerator % denominator
+      return // returns whatever the named parameters have at this point
+  }
+  ```
+
+## Functions are values
+
+We can use functions are values in Go. The type of a function is
+``func(types of parameters) types of the return values``. For instance given
+``func add(i int, j int) int``, the type would be ``func(int, int) int``.
+
+* We can use the ``type`` keyword to define a function type too:
+  ```go
+  type opFuncType func(int, int) int
+  
+  // later on, we can make a map of those function types
+  var opMap = map[string]opFuncType {
+      // bla bla
+  }
+  ```
+
+* Go also has inner functions, aka functions defined within a function. They
+  are *anonymous functions* and you write them inline and call them
+  immediately:
+  ``go
+  func main () {
+      for i := 0; i < 5; i++ {
+          func(j int) {
+              fmt.Prinln("printing", j "inside of an anonymous function")
+          }(i)
+      }
+  }
+  ``
+
+## Closures
+
+*Closures* are functions declared inside of functions. When they are passed to
+other functions or returned from another function allow us to take the
+variables within our function and use those values *outside* our function.
+
+* ``func Slice(x interface{}, less func(i, j int) bool)`` takes a function to
+  short the given slice. So if we had a structs stored in slices of this type:
+  ```go
+  type Person struct {
+      FirstName string
+      LastName  string
+      Age       int
+  }
+  people := []Person{
+      {"Pat", "Patterson", 23}
+      {"Tracy", "Bobbert", 22}
+      {"Fred", "Fredson", 20}
+  }
+  ```
+   We can call the ``sort.Slice``  to order it by age like this:
+  ```go
+  sort.Slice(people, func(i, j int) bool {
+      return peole[i].Age < people[j].Age
+  })
+  ```
+   In this case ``people`` will be modified and from now on it will be ordered.
+
+* We can also return functions from functions, this is, functions that return
+  closures:
+  ```go
+  func makeMult(base int) func(int) int {
+      return func(factor int) int {
+          return base * factor
+      }
+  }
+  
+  func main() {
+      baseTwo := makeMult(2)
+      // now we use the baseTwo closure
+      for i := 0; i < 3; i++ {
+          fmt.Println(baseTwo(i))
+      }
+  }
+  ```
+
+## defer
+
+We use  the ``defer`` keyword followed by a function or method call to ensure
+that some call runs once the surrounding function exits.
+
+* When we have multiple ``defer``s, they run last-in-first-out (LIFO).
+
+* When we ``defer`` a closure, the closure would run *after* the return
+  statement.
+  So, if we would do something like the following we wouldn't be able to read
+  the returned value from the closure:
+  ```go
+  func example () {
+      defer func() int {
+          return 2 // we can't read this value
+      }()
+  }
+  ```
+  But, if we use *named return values* in the surrounding function, we can
+  handle those return values. This handles an error in a example database where
+  we want to roll back if we can't perform all the inserts that we wanted:
+  ```go
+  func DoSomeInserts(ctx context.Context, db *sql.DB, value1, value2 string) (err error) {
+      tx, err := db.BeginTx(ctx, nil)
+      if err != nil {
+          return err
+      }
+      // we defer this closure: commits the changes if no errors,
+      // or roll backs if there are errors
+      defer func() {
+          if err == nil {
+              err = tx.Commit()
+          }
+          if err != nil {
+              tx.Rollback()
+          }
+      }()
+      // we perform the error-prone operations here
+      _, err = tx.ExecContext(ctx, "INSERT INTO FOO (val) values $1", value1)
+      if err != nil {
+          return err
+      }
+      // use tx to do more database inserts here
+      return nil
+  }
+  ```
+  
+**-->** A common pattern in Go for functions that allocate resources is to
+return a closure that cleans up the resource. For instance:
+```go
+func getFile(name string) (*os.File, func(), error) {
+    file, err := os.Open(name)
+    if err != nil {
+        return nil, nil, err
+    }
+    return file, func() {
+        file.Close()
+    }, nil
+}
+// we would call this function like this:
+f, closer, err := getFile(os.Args[1])
+if err != nil {
+    log.Fatal(err)
+}
+defer closer()
+```
+
+# Go is call by value
+
+104
