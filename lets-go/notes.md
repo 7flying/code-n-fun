@@ -1157,7 +1157,7 @@ func div(numerator int, denominator int) int {
 
 * Go allows multiple return values:
   ```go
-  fuc divAndRemainder(numerator int, denominator int) (int, int, error) {
+  func divAndRemainder(numerator int, denominator int) (int, int, error) {
       if denominator == 0 {
           return 0, 0, errors.New("cannot divide by zero")
       }
@@ -1218,7 +1218,7 @@ We can use functions are values in Go. The type of a function is
 * Go also has inner functions, aka functions defined within a function. They
   are *anonymous functions* and you write them inline and call them
   immediately:
-  ``go
+  ```go
   func main () {
       for i := 0; i < 5; i++ {
           func(j int) {
@@ -1226,7 +1226,7 @@ We can use functions are values in Go. The type of a function is
           }(i)
       }
   }
-  ``
+  ```
 
 ## Closures
 
@@ -1234,8 +1234,12 @@ We can use functions are values in Go. The type of a function is
 other functions or returned from another function allow us to take the
 variables within our function and use those values *outside* our function.
 
-* ``func Slice(x interface{}, less func(i, j int) bool)`` takes a function to
-  short the given slice. So if we had a structs stored in slices of this type:
+* The signature:
+  ```go
+  func Slice(x interface{}, less func(i, j int) bool)
+  ```
+  takes a function to short the given slice. So if we had a structs stored in
+  slices of this type:
   ```go
   type Person struct {
       FirstName string
@@ -1341,6 +1345,186 @@ if err != nil {
 defer closer()
 ```
 
-# Go is call by value
+## Go is call by value
 
-104
+When we supply a variable for a parameter to a function, Go *always* makes a
+copy of the value of the variable.
+
+However:
+
+* Any changes made to a map parameter are reflected in the variable passed into
+  the function.
+  So, if we were to have:
+  ```go
+  func modMap(m map[int]string) {
+      m[2] = "hello"
+      m[3] = "goodbye"
+      delete(m,1)
+  }
+  ```
+  These changes would we reflected in the caller.
+
+  The same happens with the elements of a slice, but we *can't* lengthen the
+  slice.
+  
+* This is true for maps and slices by themselves, but also for map and slice
+  fields in structs since maps and slices are both implemented with pointers.
+
+# Pointers
+
+1. [Pointer primer](#pointer-primer)
+2. [Pointers are a last resort](#pointers-are-a-last-resort)
+3. [Pointer passing performance](#pointer-passing-performance)
+
+## Pointer primer
+
+```go
+var x int32 = 10
+var y bool = true
+pointerX := &x
+pointerY := &y
+var pointerZ *string
+```
+
+* Go is call by value.
+* The zero value for a pointer is ``nil``. Remember that unlike ``NULL`` in C,
+  ``nil`` is not another name for 0.
+* Pointer arithmetic is not allowed in Go, but there is an ``unsafe`` package
+  lets us do some low-level operations on data structures.
+* Go has a garbage collector.
+* ``&`` is the *address* operator
+  ```go
+  x := "hello"
+  pointerToX := &x
+  ```
+  **!! -->** We can't use an ``&`` before a primitive literal (numbers, booleans and
+  strings) or a constant because they don't have memory addresses, they exist
+  only at compile time.
+      - To create a pointer instance for structs use ``&``:
+      ```go
+      x := &Foo{}
+      ```
+      - To create a pointer instance for primitive types, declare a variable
+        and point to it:
+      ```go
+      var y string
+      z := &y
+      ```
+  If we have a struct with a field of a pointer to a primitive type, we can't
+  assign a literal directly to the field:
+  ```go
+  type person struct {
+      FirstName string
+      MiddleName *string
+      LastName string
+  }
+  p := person{
+      FirstName: "Pat",
+      MiddleName: "Perry", // this line won't compile: cannot use "Perry" (type string) as type *string in field value
+      LastName: "Peterson", 
+  }
+  ```
+  To solve this we can declare a variable to hold the value and then use ``&``
+  to assign a pointer to that value. Or, we can use a helper function that
+  takes whatever primitive type we want and returns a pointer to that type.
+  ```go
+  func stringp(s string) *string {
+      return &s
+  }
+  p := person{
+      FirstName: "Pat"
+      MiddleName: stringp("Perry"),
+      LastName: "Peterson"
+  }
+  ```
+  This works because when we pass a constant to a function, the constant is
+  copied to a parameter, which is a variable, and hence has an address in
+  memory.
+  
+* ``*`` is the *indirection* operator. It precedes a variable of pointer type
+  and returns the pointed-to value, this is called *dereferencing*.
+  ```go
+  x := 10
+  pointerToX := &x
+  fmt.Println(pointerToX)
+  fmt.Println(*pointerToX)
+  z := 5 + *pointerToX
+  fmt.Println(z)
+  ```
+  Before dereferencing a pointer we must make sure that it is non-nil:
+  ```go
+  var x *int // this is initialised to the zero value: nil
+  fmt.Println(x == nil) // true
+  fmt.Println(*x) // this will cause a panic
+  ```
+* The ``new`` built-in function creates a pointer variable. It returns a
+  pointer to a zero value instance of the provided type:
+  ```go
+  var x = new(int)
+  fmt.Prinln(x == nil) // false
+  fmt.Println(*x) // prints 0, the zero value of int
+  ```
+  This ``new`` function is not commonly used.
+
+* **!!-->** When we pass a ``nil`` pointer to a function, we can't make the
+  value non-nil (obviously since we cannot dereference a nil pointer).
+
+## Pointers are a last resort
+
+* If we need to populate a struct, rather than passing a pointer to the struct
+  that we want populated, make a function that instantiates and returns the
+  struct:
+
+    This is no good:
+    ```go
+    func MakeFoo(f *Foo) error {
+        f.Field1 = "val"
+        f.Field2 = 20
+        return nil
+    }
+    ```
+
+    This is preferred:
+    ```go
+    func MakeFoo() (Foo, error) {
+        f := Foo{
+            Field1: "val",
+            Field2: 20,
+        }
+        return f, nil
+    }
+    ```
+
+    **!!-->** The only time when we should use pointer parameters to modify a
+    variable in when the function expects an *interface*
+    (``interface{}``). Moreover there are data types that are used with
+    concurrency what must always be passed as pointers.
+
+    For instance in ``json`` package of the standard Go library we have this
+    function:
+    ```go
+    func Unmarshal(data []byte, v interface{}) error
+    ```
+
+    And to call it we should pass a pointer to the ``interface{}`` parameter:
+    ```go
+    f := struct {
+        Name string `json:"name"`
+        Age int `json:"age"`
+        }
+    err := json.Unmarshal([]byte(`{"name": "Bob", "age": 30}`), &f)
+    ```
+
+* When returning values from a function, we should favour value types. We
+  should only return pointer types as a return type when there is a state
+  within the data type that needs to be modified (for instance in I/O).
+
+## Pointer passing performance
+
+* The time to pass a pointer into a function is constant for all data sizes.
+
+* The behaviour for returning a pointer versus returning a value changes:
+  - For data structures that are smaller than a megabyte: it is *slower* to
+    return a pointer type (nanosecond difference).
+
+118
