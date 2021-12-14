@@ -1,3 +1,6 @@
+# Let's Go!
+
+I'm using *Learning Go: An Idiomatic Approach to Real-World Go Programming* by Jon Bodner.
 
 ## Links
 
@@ -1027,7 +1030,7 @@ On ``switch`` statements:
       fmt.Println(word, "is a long word")
   ``` 
 
-- Go has the ``fallthrough``keyword, which lets one case continue to the next one, but it is discouraged.
+- Go has the ``fallthrough`` keyword, which lets one case continue to the next one, but it is discouraged.
 - If we have a ``switch`` statement inside a ``for`` loop, if we want to break
   out of the ``for`` loop, a label is required. Otherwise Go will assume that
   we want to break out of the ``case``.
@@ -1375,6 +1378,8 @@ However:
 1. [Pointer primer](#pointer-primer)
 2. [Pointers are a last resort](#pointers-are-a-last-resort)
 3. [Pointer passing performance](#pointer-passing-performance)
+4. [The difference between maps and slices](#the-difference-between-maps-and-slices)
+5. [Reducing the garbage colector's workload](#reducing-the-garbage-collector-s-workload)
 
 ## Pointer primer
 
@@ -1527,4 +1532,109 @@ var pointerZ *string
   - For data structures that are smaller than a megabyte: it is *slower* to
     return a pointer type (nanosecond difference).
 
-118
+## The difference between maps and slices
+
+* A ``map`` is is implemented as a pointer to a struct.
+* A ``slice`` implemented as a struct with three fields: ``int``for length,
+  ``int`` for capacity, and a pointer to a block of memory.
+  within the data type that needs to be modified (for instance in I/O).
+
+## Reducing the garbage colector's workload
+
+Higher throughput: find the most garbage in a single scan VS lower latency:
+finish the scan as quickly as possible.
+
+# Types, methods and interfaces
+
+1. [Types in go](#types-in-go)
+2. [Methods](#methods)
+   1. [Pointer receivers and value receivers](#pointer-receivers-and-value-receivers)
+
+
+## Types in Go
+
+An *abstract type* is one that specifies what a type should do, but not how it
+is done. a *concrete type* specifies what and how.
+
+```go
+type Person struct {
+    FirstName string
+    LastName string
+    Age int
+}
+
+type Score int
+type Converter func(string)Score
+type TeamScores map[string]Score
+```
+
+## Methods
+
+Methods for a type are defined at the package block level and look like
+function declarations, but they add the *receiver* specification. It appears
+between the keyword ``func`` and the name of the method.
+
+**!!-->** Method names, like functions, cannot be overloaded. We can use the
+same method names for different types, but we cannot use the same method name
+for two different methods of the same type.
+
+```go
+type Person struct {
+    FirstName string
+    LastName string
+    Age int
+}
+//   receiver   func name  return value
+func (p Person) String() string {
+    return fmt.Sprintf("%s %s, age %d", p.FirstName, p.LastName, p.Age)
+}
+```
+
+Method invocations are like this:
+
+
+```go
+p := Person {
+    FirstName: "Fred",
+    LastName: "Fredson",
+    Age: 52,
+}
+output := p.String()
+```
+
+### Pointer receivers and value receivers
+
+We can use ``value receivers`` and ``pointer receivers``:
+- When our method modifies the receiver we must use a pointer receiver.
+- If our method handles ``nil`` instances, we must use a pointer receiver.
+- If our method does not modify the receiver, we might want to use a value
+  receiver. 
+
+```go
+type Counter struct {
+	total int
+	lastUpdated time.Time
+}
+
+func (c *Counter) Increment() {
+	c.total++
+	c.lastUpdated = time.Now()
+}
+
+func (c Counter) String() string {
+	return fmt.Sprintf("total: %d, last updated: %v", c.total, c.lastUpdated)
+}
+
+func main() {
+	var c Counter // c is a value type, it is coverted to (&c).Increment()
+	fmt.Println(c.String())
+	c.Increment()
+	fmt.Println(c.String())
+}
+```
+
+**!!-->** When we use a pointer receiver with a local variable that it is a
+value, (we are calling ``c.Increment()`` and ``c`` is a value type, not a
+pointer type), Go automatically converts it to a pointer type (aka
+``(&c).Increment()``)
+
