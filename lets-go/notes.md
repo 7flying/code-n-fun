@@ -1549,7 +1549,9 @@ finish the scan as quickly as possible.
 1. [Types in go](#types-in-go)
 2. [Methods](#methods)
    1. [Pointer receivers and value receivers](#pointer-receivers-and-value-receivers)
-
+   2. [iota](#iota)
+3. [Embedding for composition](#embedding-for-composition)
+4. [Interfaces](#interfaceso)
 
 ## Types in Go
 
@@ -1638,3 +1640,157 @@ value, (we are calling ``c.Increment()`` and ``c`` is a value type, not a
 pointer type), Go automatically converts it to a pointer type (aka
 ``(&c).Increment()``)
 
+### iota
+
+Go doesn't have an enumeration type, instead it has ``iota``, which lets us
+assign an increasing value to a set of constants:
+
+```go
+type MailCategory int
+
+const (
+    Uncategorized MailCategory = iota
+    Personal
+    Spam
+    Social
+    Advertisements
+)
+```
+
+The Go compiler repeats the type assigment for each subsequent line, and
+increments the value of ``iota``on each line. So ``MailCategory`` would have 0,
+``Personal`` 1 and so on.
+
+## Embedding for composition
+
+Go doesn't have inheritance, it encourages code reuse by composition and
+promotion: 
+
+```go
+type Employee struct {
+    Name string
+    ID string
+}
+
+func (e Employee) Description() string {
+    return fmt.Sprintf("%s (%s)", e.Name, e.ID)
+}
+
+type Manager struct {
+    Employee // this is an embedded field
+    Reports []Employee
+}
+
+func (m Manager) FindNewEmployees() []Employee {
+    // bla bla
+}
+```
+
+``Manager`` has an unnamed field of type ``Employee``, that is an *embedded
+field*. Fields or method declared on an embedded field are *promoted* to the
+containing struct. We can use them directly:
+
+```go
+m := Manager{
+    Employee: Employee{
+        Name: "Bon Bobston",
+        ID: "123456",
+    },
+    Reports: []Employee{},
+}
+fmt.Println(m.ID)
+fmt.Println(m.Description())
+```
+
+When the containing struct has fields or methods with the same name as an
+embedded field, we must use the embedded field's type to refer to the repeated
+field names:
+
+```go
+type Inner struct {
+    X int
+}
+
+type Outer struct {
+    Inner
+    X int
+}
+
+o := Outer{
+    Inner: Inner{
+        X: 10,
+    },
+    X: 20,
+}
+
+fmt.Println(o.X) // 20
+fmt.Println(o.Inner.X) // 10
+```
+
+## Interfaces
+
+Interfaces are the only abstract type in Go, you declare them with the ``type``
+and ``interface`` keywords:
+
+Example from the ``fmt`` package.
+```go
+type Stringer interface {
+    String() string
+}
+```
+
+- An interface lists the methods that must be implemented by a concrete type to
+  meet the interface. This method list is called *method set of the interface*.
+
+- Interfaces are implemented *implicitly*. A concrete type does *not* declare
+  that it implements and interface. If the concrete type contains all of the
+  methods in the method set for an interface, the concrete type implements the
+  interface.
+  
+  When this happens, the concrete type can be assigned to a variable or field
+  to be the type of the interface:
+  ```go
+  type LogicProvider struct {}
+
+  func (lp LogicProvider) Process(data string) string {
+      return "bla bla"
+  }
+
+  type Logic interface {
+      Process(data string) string
+  }
+
+  type Client struct{
+      L Logic
+  }
+
+  func (c Client) Program() {
+      data := "stuff"
+      c.L.Process(data)
+  }
+
+  func main() {
+      c := Client{
+		  // since it has the Proces(data string) method, it implements the interface
+		  // and thus, it can be assigned to the type of the interface
+		  L: LogicProvider{},
+      }
+      c.Program()
+  }
+  ```
+
+- We can embed interfaces.
+  ```go
+  type Reader interface {
+      Read(p []byte) (n int, err error)
+  }
+  
+  type Closer interface {
+      Close() error
+  }
+  
+  type ReadCloser interface {
+      Reader
+      Closer
+  }
+  ```
