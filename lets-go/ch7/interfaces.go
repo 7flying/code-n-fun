@@ -1,4 +1,6 @@
-package interfaces
+package main
+
+import "fmt"
 
 type LogicProvider struct {}
 
@@ -26,4 +28,11 @@ func main() {
 		L: LogicProvider{},
 	}
 	c.Program()
+
+	var s *string
+	fmt.Println(s == nil)
+	var i interface{}
+	fmt.Println(i == nil)
+	i = s
+	fmt.Println(i == nil)
 }

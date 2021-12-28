@@ -1551,7 +1551,8 @@ finish the scan as quickly as possible.
    1. [Pointer receivers and value receivers](#pointer-receivers-and-value-receivers)
    2. [iota](#iota)
 3. [Embedding for composition](#embedding-for-composition)
-4. [Interfaces](#interfaceso)
+4. [Interfaces](#interfaces)
+5. [Type assertions and type switches](#type-assertions-and-type-switches)
 
 ## Types in Go
 
@@ -1740,10 +1741,11 @@ type Stringer interface {
 ```
 
 - An interface lists the methods that must be implemented by a concrete type to
-  meet the interface. This method list is called *method set of the interface*.
+  meet the interface. This method list is called the *method set of the
+  interface*.
 
 - Interfaces are implemented *implicitly*. A concrete type does *not* declare
-  that it implements and interface. If the concrete type contains all of the
+  that it implements an interface. If the concrete type contains all of the
   methods in the method set for an interface, the concrete type implements the
   interface.
   
@@ -1794,3 +1796,44 @@ type Stringer interface {
       Closer
   }
   ```
+- ``nil`` is the zero value for an interface instance, but with some buts.
+
+    An interface is implemented as a pair of pointers, one to the underlying
+    type and one to the underlying value. If the type is non-nil the interface
+    is non-nil.
+    ```go
+    var s *string
+	fmt.Println(s == nil) // true
+	var i interface{}
+	fmt.Println(i == nil) // true: the interface type is nil
+	i = s
+	fmt.Println(i == nil) // false: the interface type is non nil
+    ```
+    
+    ``nil`` for an interface indicates whether or not we can invoke methods on
+    it, since if the interface is ``nil`` we would trigger a panic.
+    
+    We can use reflection to check whether the value associated with the
+    interface is ``nil`` or not. (TODO: this is explained further on)
+    
+- We use interfaces to say that a variable could hold a value of any type, in
+  Go we use: ``ìnterface{}`` Updated: 16/12/21: [Go replaces interface{} with
+  any](https://github.com/golang/go/commit/2580d0e08d5e9f979b943758d3c49877fb2324cb)
+  (it is just an alias).
+  ```go
+  var i interface{}
+  i = 20
+  i = "hello"
+  i = struct{
+      FirstName string
+      LastName string
+  } {"Fred", "Fredson"}
+  ```
+  
+  An empty interface type (``interface{}``) just says that the variable can
+  store any value whose type implements zero or more methods, and that matches
+  every type in Go.
+
+## Type assertions and type switches
+
+
