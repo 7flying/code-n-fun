@@ -17,6 +17,9 @@ Language](https://doc.rust-lang.org/book/title-page.html) book.
    1. [Scalar types](#scalar-types)
    2. [Compound types](#compound-types)
 3. [Functions](#functions)
+   1. [Statements and expressions](#statements-and-expressions)
+   2. [Functions with return values](#functions-with-return-values)
+4. [Control flow](#control-flow)
 
 ## Variables and mutability
 
@@ -126,7 +129,7 @@ Rust has tuples and arrays.
   A tuple is a general way of grouping together a number of values with a
   variety of types into a compound type.
 
-  Tuples have fixes size, once declared they cannot grow or shrink in size.
+  Tuples have fixed size, once declared they cannot grow or shrink in size.
   
   ```rust
   let tup: (i32, f64, u8) = (500, 6.4, 1);
@@ -177,3 +180,154 @@ fn another_function(x: i32, y: i32) {
     println!("y is {}", y);
 }
 ```
+### Statements and expressions
+
+
+Function bodies contain statements and expressions.
+
+- *Statements* are instructions that perform something and **do not** return a
+value. They are finished with a semicolon ``;``.
+- *Expressions* evaluate to a resulting value, they don't have a semicolon at
+  the end.
+
+  ```rust
+  let y = {
+      let x = 3; // statement
+      x + 1 // expression, it will return a value
+  }; // statement
+  println!("The value of y is {}", y); // 4
+  ```
+
+### Functions with return values
+
+Rust does not name return values, it only declares their type after an arrow
+(``->``). The return value of the function is synonymous with the value of the
+final expression in the block of the body of a function.
+
+This function returns 5:
+
+```rust
+fn five() -> i32 {
+    5
+}
+```
+
+And we call it like this:
+
+```rust
+fn main() {
+    let result = five();
+    println!("The result is: {}", result);
+}
+```
+
+## Control flow
+
+* ``if`` expressions.
+  ```rust
+  let number = 3;
+  if number < 5 {
+      // bla bla
+  } else if {
+      // else if bla bla
+  } else {
+      // else bla bla
+  }
+  ```
+  
+  In Rust the condition in an `if` expression must be a `bool` otherwise we
+  will get an error. For instance:
+  
+  ```rust
+  let number = 3;
+  if number {  // ---> this throws a compile time error
+      // bla bla
+  }
+  ```
+  We can use `if` expressions in the rhs of a `let` statement:
+  ```rust
+  let condition = true;
+  let number = if condition { 5 } else { 6 };
+  ```
+  however, the types of the arms of the if must match since Rust needs to know
+  at compile time the type that the variable will take as the expression evaluates.
+
+* `loop` keyword.
+
+   We can make endless loops with Rust:
+   ```rust
+   fn main() {
+       loop {
+           println!("forever young");
+       }
+   }
+   ```
+   And we can break away from them with the  `break` keyword.
+   
+   We can return values from loops if we put the value that we want returned
+   after the `break` expression:
+   ```rust
+   let mut counter = 0;
+   let result = loop {
+       counter += 1;
+       if counter == 10 {
+           break counter * 2;
+       }
+   };
+   println!("The result is: {}", result);
+   ```
+* The `while` construction.
+
+  Runs the code in the body while the condition is true or we call `break`
+  inside the loop.
+  ```rust
+  let mut number = 3;
+  while number != 0 {
+      number -= 1;
+  }
+  ```
+  
+  We can use it to loop over the elements of a collection, such an array:
+  ```rust
+  let a = [10, 20, 30, 40, 50];
+  let mut index = 0;
+  while index < 5 {
+      println!(" at {} the value is {}", index, a[index]);
+      index += 1;
+  }
+  ```
+
+* `for` loop.
+   ```rust
+   let a = [10, 20, 30, 40, 50];
+   for element in a {
+       println!("{}", element);
+   }
+   ```
+   
+   We can use `Range` with a `for` loop 
+   (X..Y), y is not inclusive but x is.
+   
+   ```rust
+   for number in (1..4).rev() {
+       println!("{}", number)
+   }
+   ```
+
+# 4. Ownership
+
+1. [What is Ownership?](#what-is-ownership)
+
+## What is ownership
+
+Ownership is a feature of Rust to make memory safety guarantees without needing
+a garbage collector.
+
+Ownership rules:
+1. Each value in Rust has a variable that's called its owner.
+2. There can only be one owner at a time
+3. When the owner goes out of scope, the value will be dropped.
+
+* Variable scope:
+  
+  
