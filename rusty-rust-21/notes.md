@@ -3,6 +3,8 @@
 Using [The Rust Programming
 Language](https://doc.rust-lang.org/book/title-page.html) book.
 
+For reference: [The Rustonomicon](https://doc.rust-lang.org/nomicon/intro.html)
+
 ## Tools
 
 * ``rustup``: the Rust toolchain installer. ``rustup update``.
@@ -904,3 +906,247 @@ if let Coin::Quarter(state) == coin {
 }
 
 ```
+
+# 7. Managing growing projects
+
+* `pub` makes something public.
+
+* We define a module with the `mod` keyword followed by the name of the
+  module.
+  
+* `crate` is the root folder.
+  
+* `super` allows us to go to the parent module.
+
+* When `pub` is used in structs we need to additionally add `pub` to each field
+  that we want public too.
+
+* When `pub` is used in an enum, all of its variants are then public.
+
+* `use` allows us to bring a path into scope.
+  
+  When bringing structs, enums and other items it's idiomatic to specify the
+  full path: `use std::collections::HashMap;`
+  
+  When we want to bring a function into scope we must bring the parent and use
+  the function specifying its parent:
+  
+  ```rust
+  use something::parent;
+  ...
+  parent:some_function();
+  ```
+* We can give new names to things that we have brought into scope with `use`
+  using the `as` keyword:
+  ```rust
+  use std::fmt::Result;
+  use std::io::Result as IoResult;
+  ```
+  
+* We can re-export names with `pub use`.
+  When we bring a name into scope it is private for this current scope, if we
+  want to make it available for other scopes that bring our scope into scope we
+  need to use `pub use`.
+
+* We can group use lists together:
+  ```rust
+  use std::cmp::Ordering;
+  use std::io;
+  
+  /// becomes:
+  
+  use std::{cmp::Ordering, io};
+  ```
+  
+  And:
+  ```rust
+  use std::io;
+  use std::io::Write;
+  
+  // becomes:
+  
+  use std::io::{self, Write};
+  ```
+
+* If we want to bring *all* the public items defined in a path into scope we
+  use the star `*` (glob operator):
+  ```rust
+  use std::collections::*;
+  ```
+
+# 8. Common collections
+
+Unlike the built-in array and tuple types, data of these collections is stored
+on the heap: vector, string, hash map.
+
+Reference about other collections
+[here](https://doc.rust-lang.org/std/collections/index.html).
+
+1. [Vectors](#vectors)
+2. [Strings](#strings)
+3. [Hash Maps](#hash-maps)
+
+## Vectors
+
+* We create a new vector with the `Vec::new` function or with the `vec!` macro:
+  ```rust
+  let v: Vec<i32> = Vect::new();
+  ```
+  In the case above type annotation is needed since we aren't adding any values
+  and the compiler needs to know their type.
+  
+  ```rust
+  let v = vect![1, 2, 3];
+  ```
+  When we use the macro the compiler can infer what type the vector has.
+  
+* To add items to a vector we use `push`.
+  ```rust
+  let mut v = Vec::new(),
+  v.push(1);
+  ```
+  Here Rust infers `v`'s type so we don't need a type annotation.
+  
+* Dropping a vector drops its elements. When a vector goes out of scope its
+  elements and the vector are deleted.
+  
+* Accessing elements.
+  
+  We can use the index syntax `[ ]` , which returns a reference:
+  ```rust
+  let v = vec![1, 2, 3, 4, 5];
+  let third: &i32 = &v[2]; // type annotation here is optional
+  ```
+  We can use the `get` method, which returns an `Option<&T>`:
+  ```rust
+  let v = vec![1, 2, 3, 4, 5];
+  match v.get(2) {
+      Some(third) => println!("{}", third);
+      None => println!("nothing there");
+  }
+  ```
+
+* Iterating over the values.
+  ```rust
+  let v = vec![100, 2];
+  for i in &v {
+      // bla bla
+  }
+  ```
+  Remember that if the variable is mutable, the reference must be mutable too:
+  ```rust
+  let mut v = vec![100, 3];
+  for i in &mut v {
+      *i += 1; // here we modify v
+  }
+  ```
+
+* When we need to store different types inside a vector we need to use an enum
+  to wrap them:
+  ```rust
+  enum SpreadsheetCell {
+      Int(32),
+      Float(f64),
+      Text(String),
+  }
+  
+  let row = vec![
+      SpreadsheetCell::Int(3),
+      SpreadsheetCell::Text(String::from("blue")),
+      SpreadsheetCell::Float(10.02),
+  ];
+  ```
+
+## Strings
+
+Rust has the string slice `str` type (usually seen as borrowed ``&str``), and
+in the Rust standard library we have the `String` type. Both are UTF-8
+encoded. 
+
+* Creating an empty `String`:
+  ```rust
+  let mut s = String::new();
+  ```
+
+* To load data into a `String` we use the `to_string` method:
+  ```rust
+  let data = "some data";
+  let s = data.to_string();
+  let s = "some_data".to_string();
+  ```
+  
+  We also have ``String::from``:
+  ```rust
+  let s = String::from("Some data");
+  ```
+
+* We can push new content into a string with the `push_str` method:
+  ```rust
+  let mut s = String::from("foo");
+  s.push_str("bar");
+  ```
+  We also have `push` which takes a single character (`push('a')`);
+
+* To concatenate strings we have the `+` operator: (takes a String and a
+  &String, thereby lhs is invalidated)
+  ```rust
+  let s1 = String::from("Hello ");
+  let s2 = String::from("world!");
+  let s3 = s1 + &s2; // s1 is invalidaded
+  ```
+   `+` is implemented using `fn add(self, s: &str) -> String {`, Rust converts
+  the `&String` that we are passing (&s2) into a `&str`.
+  
+* We can also use the `format!` macro to concatenate Strings, which uses
+  references, so we don't need to care about variables being invalidated.
+  ```rust
+  let s1 = String::from("tic");
+  let s2 = String::from("tac");
+  let s3 = String::from("toe");
+  let s = format!("{}-{}-{}", s1, s2, s3);
+  ```
+* Rust's Strings do not support indexing (`[]`) since they are a wrapper of
+  `Vec<u8>` and they're encoded in UTF-8 (this means that each 'character' does
+  not take the same storage size).
+  
+* We can iterate strings as Unicode scalar values using the `chars` method or
+  as raw bytes with the `bytes` method.
+  
+  To obtain grapheme clusters (aka something like letters) we need an external
+  crate.
+  
+* String slicing is made over bytes.
+
+## Hash Maps
+
+The type `HashMap<K, V>` stores a mapping of keys of type `K` to values of type
+`V`. 
+
+* We create a hash map with `new`:
+  ```rust
+  use std::collections::HashMap;
+  let mut scores = HashMap::new();
+  ```
+  
+  Note that `HashMap` is not automatically included in the prelude, so we must
+  import it.
+
+* We add stuff with ``insert``:
+  ```rust
+  scores.insert(String::from("Blue"), 10);
+  ```
+
+* We can also construct a hash map using iterators and the `collect` method on
+  a vector of tuples (key, value).
+  ```rust
+  let teams = vec![String::from("Blue"), String::from("Yellow")];
+  let initial_scores = vec![10, 30];
+  
+  let mut scores: HashMap<_, _> = teams.into_iter().zip(initial_scores.into_iter()).collect();
+  ```
+  
+  Since we are using `collect` we need to specify which target type we are
+  collecting (`HashMap`), but we don't need to specify the types of the keys
+  and values of the hash map since the compiler can infer them.
+
+* Ownership in hash maps.
