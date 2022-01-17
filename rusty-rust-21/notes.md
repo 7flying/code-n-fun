@@ -796,6 +796,8 @@ Enums allow us to define a type by enumerating all its possible variants.
 execute code based on which pattern matches. The patterns are evaluated in
 order.
 
+Since `match` is an expression, remember that it returns something.
+
 ```rust
 enum Coin {
     Penny,
@@ -899,7 +901,7 @@ match coin {
 // becomes:
 
 let mut count = 0;
-if let Coin::Quarter(state) == coin {
+if let Coin::Quarter(state) = coin {
     println!("State quarter from {:?}", state);
 } else {
     count += 1;
@@ -1150,3 +1152,189 @@ The type `HashMap<K, V>` stores a mapping of keys of type `K` to values of type
   and values of the hash map since the compiler can infer them.
 
 * Ownership in hash maps.
+  For types that implement the `Copy` trait (`i32` and simple types) the values
+  are copied into the hash map, for owned values like `String` the values will
+  be moved and the hash map will become the owner.
+  
+  If we insert references to values, the values won't be moved, but we need to
+  make sure that the values must be valid for at least as long as the hash map
+  is valid. 
+
+* Accessing values.
+
+  We can get a value providing its key to the `get` method (takes a reference)
+  and it will return an `Option<&V>`
+  ```rust
+  let team_name = String::from("Blue");
+  let score = scores.get(&team_name);
+
+  match score {
+      Some(&value) => println!("Team {} has {}", &team_name, value),
+      None => println!("Team {} not found", &team_name),
+  }
+  ```
+  
+  We can iterate over each key-value pair wit a `for` loop:
+  ```rust
+  for (key, value) in &scores {
+      println!("{}: {}", key, value);
+  }
+  ```
+  
+* Overwriting a value.
+  Simply `insert` into the same key.
+
+* Insert if the key has no value.
+  Hash maps have an special API called `Entry` that we can check:
+  
+  ```rust
+  scores.entry(String::from("yellow")).or_insert(50);
+  ```
+  
+  `on_insert` returns a mutable reference to the value of the `Entry` if the
+  key exists, if not, it inserts the parameter.
+
+* Update a value based on its old value.
+
+  ```rust
+  let mut map = HashMap::new();
+  let text = "hello world";
+  for word in text.split_whitespace() {
+      let count = map.entry(word).or_insert(0);
+      *count += 1;
+  }
+  ```
+  Since the `or_insert` method returns a mutable reference we need to
+  dereference it `*`.
+
+# 9. Error handling
+
+1. [Unrecoverable errors](#unrecoverable-errors)
+2. [Recoverable errors](#recoverable-errors)
+3. [To panic or not to panic](#to-panic-or-not-to-panic)
+
+Rust groups errors into recoverable (handled by the type `Resut<T, E>`) and
+unrecoverable errors (with the `panic!` macro).
+
+## Unrecoverable errors
+
+When a `panic!` is thrown Rust *unwinds* the stack (aka walks back it and
+cleans the data from each function it encounters). This takes time. We can tell
+Rust to abort without panicking (doesn't clean up the stack) by adding in the
+appropriate Cargo  `[profile]`  `panic = 'abort'`.
+``
+
+* We can examine backtraces with: `RUST_BACKTRACE=! cargo run`.
+
+## Recoverable errors
+
+The `Result` enum is defined having two variants: `Ok` and `Err`, it is brought
+into scope in the prelude.
+
+It looks like this:
+```rust
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+```
+where T and E are generic type parameters.
+
+```rust
+let f = File::open("hello.txt");
+let f = match f {
+    Ok(file) => file,
+    Err(error) => panic!("problem opening file: {:?}", error),
+};
+```
+
+* We can match on different types of errors:
+  ```rust
+  use std::io::ErrorKind;
+  //...
+  Err(error) => match error.kind() {
+      ErrorKind::NotFound => match File::create("hello.txt") {
+          Ok(fc) => fc,
+          Err(e) => panic!(" error creating the file {:?}", e),
+      },
+      other_error => {
+          panic!(" problem opening the file: {:?}", other_error)
+      },
+  },
+  //...
+  ```
+* Since matching all the options of a `Result` is is very verbose, we can use
+  `unwrap` instead. Which is implemented like a `match` expression and will
+  return the value inside the `Ok` or call to `panic!`:
+  ```rust
+  let f = File::open("hello.txt").unwrap();
+  ```
+  
+  We also have `expect`, which allows us to choose the `panic!` error message:
+  ```rust
+  let f = File::open("hello.txt").expect("shit happened");
+  ```
+  
+* We can propagate errors by returning it:
+  ```rust
+  use std::fs::File;
+  use std::io::{self, Read};
+
+  fn read_username_from_file() -> Result<String, io::Error> {
+      let f = File::open("hello.txt");
+      let mut f = match f {
+          Ok(file) => file,
+          Err(e) => return Err(e),
+      };
+      let mut s = String::new();
+      match f.read_to_string(&mut s) {
+        Ok(_) => Ok(s),
+        Err(e) => Err(e),
+      }
+  }
+  ```
+  
+  And there is another shortcut for doing this using the `?` operator:
+  ```rust
+  use std::fs::File;
+  use std::io;
+  use std::io::Read;
+  
+  fn read_username_from_file() -> Result<String, io::Error> {
+    let mut f = File::open("hello.txt")?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    Ok(s)
+  }
+  ```
+  
+  We can also call on the `?`:
+  ```rust
+  fn read_username_from_file() -> Result<String, io::Error> {
+      let mut s = String::new();
+      File::open("hello.txt")?.read_to_string(&mut s)?;
+      Ok(s)
+  }
+  ```
+  
+  We can also use `?` with `Option<T>`, if the value is `None` it will be
+  returned early from the function at that point, if the value is `Some` it
+  will be the resulting value of the expression and the execution will continue.
+  ```rust
+  fn last_char_of_first_line(text_ &str) -> Option<char> {
+      text.lines().next()?.chars().last()
+  }
+  ```
+  
+* In `main` functions we usually return `()`, but we can also return
+  `Result<(), E>`:
+  ```rust
+  use std::error::Error;
+  use std::fs::File;
+  fn main() -> Result<(), Box<dyn Error>> {
+      let f = File::open("hello.txt")?;
+      Ok(())
+  }
+  ```
+  
+# 10. Generic types, traits and lifetimes
