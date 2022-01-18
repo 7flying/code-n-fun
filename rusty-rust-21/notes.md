@@ -1338,3 +1338,199 @@ let f = match f {
   ```
   
 # 10. Generic types, traits and lifetimes
+
+1. [Generic data types](#generic-data-types)
+2. [Traits](#traits)
+3. [Lifetimes](#lifetimes)
+
+## Generic data types
+
+We can use them in functions, structs, enums, method definitions
+Generics are implement in such a way that code using generic types is as fast
+as code using concrete types. Rust performs *monomorphization* during compile
+time to turn generic code into specific code by filling in the concrete types.
+
+
+Structs:
+```rust
+struct Point<T, U> {
+    x: T,
+    y: U,
+}
+```
+
+Enums:
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+```
+
+```rust
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+```
+
+Method definitions:
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Point<T> {
+    fn x(&self) -> &T {
+        &self.x
+    }
+}
+```
+In the above example, we could also implement methods just on  `impl
+Point<f32>{` for instance, to specify that the methods will only be available
+for floating point types.
+
+
+```rust
+fn largest_i32(list: &[i32]) -> i32 {
+    let mut largest = list[0];
+
+    for &item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+```
+Becomes:
+
+```rust
+fn largest<T: PartialOrd + Copy>(list: &[T]) -> T { .. }
+```
+
+## Traits
+
+We use traits to define shared behaviour and use trait bounds to specify that a
+generic type can be any type that has that certain behaviour.
+
+A type's behaviour consists of the methods we call call on that type. Trait
+definitions group method signatures together to define a set of behaviours.
+
+* We define traits like this:
+  ```rust
+  pub trait Summary {
+      fn summarize(&self) -> String;
+  }
+  ```
+
+* Implementing a trait is similar to implementing methods using `impl` but we
+  need to put the trait and who is going to implement it like this:
+  `impl Trait for TypeThatImplementsTheTrait`.
+  
+  ```rust
+  // once that the trait is declared...
+  pub trait Summary {
+      fn summarize(&self) -> String;
+  }
+  // we have a type where the trait needs to be implemented
+  pub struct Something {
+      // bla bla
+  }
+  // so we implement it using impl ... for ...
+  impl Summary for Something {
+      fn summarize(&self) -> String {
+          // bla bla
+      }
+  }
+  ```
+  
+  We can implement traits in another crates as long as if at least one of the
+  trait or the type is local to our crate. We can't implement external traits
+  on external types e.g. we can't implement the standard library's `Display`
+  into `Vec<T>` within our crates because they are both external.
+  
+* Default implementation of traits.
+  When we declare a trait instead of just providing the signature we can put
+  some default implementation:
+  ```rust
+  pub trait Summary {
+      fn summarize(&self) -> String {
+          String::from("(default stuff)")
+      }
+  }
+  ```
+  
+  In order to use this default implementation, we need to implement the trait
+  with `impl Trait for TypeThatImplementsTheTrait { }`, but the block will be
+  empty.
+  
+  Default implementations can call other methods in the same trait, even if
+  those other methods don't have a default implementation:
+  ```rust
+  pub trait Summary {
+      fn summarize(&self) -> String {
+          String::from("(default stuff and call to other fun in trait {}", self.summarize_author())
+      }
+      
+      fn summarize_author(&self) -> String;
+  }
+  ```
+  
+* Traits as parameters.
+  To pass a trait as a parameter we use the `impl Trait` syntax:
+  ```rust
+  pub fn notify(item: &impl Summary) {
+      // bla bla
+  }
+  ```
+  
+  This is a shorter form of the *trait bound* which looks like this:
+  ```rust
+  pub fn notify<T: Summary>(item: &T) {
+      // bla bla
+  }
+  ```
+  
+  When we have more than one parameter it looks like this:
+  ```rust
+  pub fn notify(item1: &impl Summary, item2: &impl Summary) { .. }
+  
+  pub fn notify<T: Summary>(item1: &T, item2: &T) { .. }
+  ```
+  
+  When we have multiple traits we need to use the `+` syntax:
+  ```rust
+  pub fn notify(item: &imp(Summary + Display)) { .. }
+  
+  pun fn notify<T: Summary + Display>(item: &T) { .. }
+  ```
+
+* There is an alternate syntax for specifying trait bounds inside a `where`
+  clause, this is used when there are a lot of traits:
+  ```rust
+  // without where syntax:
+  fn some_function<T: Display + Clone, U: Clone + Debug>(t: &T, u: &u) -> i32 { .. }
+  // this becomes:
+  fn some_function<T, U>(t: &T, u: &U) -> i32
+      where T: Display + Clone,
+            U: Clone + Debug,
+  {  .. }
+  ```
+  
+* We can return types that implement traits using the `impl Trait` syntax:
+  ```rust
+  fn returns_summarizable() -> impl Summary {
+      Tweet { .. }
+  }
+  ```
+  however, we must only return the same type in all branches of the function,
+  meaning that if we have `Tweet` and `NewsArticle`, which both implement the
+  `Summary` trait, we could only return one or the other, not both depending on
+  the branch that the program takes.
+  
+## Lifetimes
+
+
