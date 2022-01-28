@@ -1533,4 +1533,146 @@ definitions group method signatures together to define a set of behaviours.
   
 ## Lifetimes
 
+# 13. Closures
 
+### Capturing the environment with closures
+
+```rust
+fn main( {
+    let x = 4;
+    let equal_to_x = |z| z == x;
+    let y = 4;
+    assert!(equal_to_x(y));
+}
+```
+
+Closures can capture values from their environment in three ways, which
+directly map to the three ways a function can take a parameter: 1) taking
+ownership (`FnOnce` trait), 2) borrowing mutably (`FnMut` trait), 3) borrowing
+immutably (`Fn` trait).
+
+* `FnOnce`: consumes the variables it captures from its enclosing scope, known
+  as the closure's *environment*. To consume the captured variables, the
+  closure takes ownership of those variables. `Once` is written because the
+  closure can't take ownership of the same variables more than once, so it is
+  called once.
+* `FnMut`: can change the environment because it mutably borrows values.
+* `Fn`: borrows values from the environment immutably.
+
+Rust infers with trait to use based on how the closure uses the values from the
+environment. All closures implement `FnOnce`, closures that don't move the
+captured variables also implement `FnMut`, and closures that don't need mutable
+access to the captured variables implement `Fn`. 
+
+**If we want to force the closure to take ownership of the values it uses in
+the environment we need to use `move`**. This is used when passing a closure to
+a new thread to move the data so it's owned by the new thread.
+
+## Processing as series of items with iterators
+
+All iterators are lazy.
+
+* Methods that call `next` are called *consuming adaptors* because calling them
+uses up the iterator: 
+    ```rust
+    let v1 = vec![2, 3, 4];
+    let total: i32 = v1.iter().sum();
+    ```
+* Methods that produce other iterators are known as *iterator adaptors*. We can
+  chain multiple calls to iterator adaptors to perform complex actions in a
+  readable way.
+  
+  We need to call one of the consuming adaptor methods to get results from
+  calls to iterator adaptors:
+  ```rust
+  let v1: Vec<i32> = vec![1, 2, 3];
+  let v2: Vec<_> = v1.iter().map(|x| x + 1).collect();
+  assert_eq!(v2, vec![2, 3, 4]);
+  ```
+
+* `filter`: is an iterator adaptor that takes a closure that takes each item
+  from the iterator and returns a Boolean. If the closure returns `true` the
+  value will be included in the iterator produced by `filter`.
+
+# 16. Concurrency
+
+1. [Threads](#threads)
+2. [Message passing](#message-passing)
+3. [Shared-state concurrency](#shared-state-concurrency)
+4. [Sync and send traits](#sync-and-send-traits)
+
+## Threads
+
+* `spawn` and `join`:
+  ```rust
+  use std::thread;
+  use std::time::Duration;
+
+    fn main() {
+        // this doesn't guarantee that the for will be completed
+        // thread::spawn(|| {
+        //     for i in 1..10 {
+        //         println!("[spawned-thread] hi number {}", i);
+        //         thread::sleep(Duration::from_millis(1));
+        //     }
+        // });
+        let handle = thread::spawn(|| {
+            for i in 1..10 {
+                println!("[spawned-thread] hi number {}", i);
+                thread::sleep(Duration::from_millis(1));
+            }
+        });
+        for i in 1..5 {
+            println!("[main-thread] hi number {}", i);
+            thread::sleep(Duration::from_millis(1));
+        }
+        // with join the main thread must wait for the spawned thread
+        handle.join().unwrap();
+    }
+    ```
+
+* `move`
+  ```rust
+  let v = vec![1, 2, 3];
+  let handle_2 = thread::spawn(move || {
+      println!("vector: {:?}", v);
+  });
+  handle_2.join().unwrap();
+  ```
+
+## Message passing
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let val = String::from("hi");
+        tx.send(val).unwrap();
+    });
+
+    let received = rx.recv().unwrap();
+    println!("Got: {}", received);
+}
+```
+
+* We are using `move` to move `tx` to the closure in the spawned thread.
+* `send` returns a `Result<T, E>`.
+* The receiving end of a channel has `recv` and `try_recv`.
+  
+  `recv` blocks the main thread of execution and waits until a value is sent
+  down the channel. it returns a `Result<T, E>`: `Ok` value holding a message
+  if it is available or `Err` if there aren't any messages.
+
+  `try_recv` does not block, it returns a `Result<T, E>` immediately: `Ok`
+  holding the message or `Err` if there aren't any messages.
+
+
+## Shared-state concurrency
+
+
+
+## Sync and send traits
