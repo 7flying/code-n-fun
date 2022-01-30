@@ -1533,4 +1533,39 @@ definitions group method signatures together to define a set of behaviours.
   
 ## Lifetimes
 
+Rust needs us to specify which reference did we return in which case:
 
+```rust
+fn longest(x: &str, y: &str) -> &str {
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+```
+the above example doesn't compile because the return value `&str` may come
+either from `x` or from `y`. And Rust needs to know about the lifetime.
+
+To do that we have *lifetime annotations*:
+```rust
+&i32 // reference
+&'a i32 // reference with explicit lifetime
+&'a mut i32 // mutable reference with explicit lifetime
+```
+
+Which is used like this in a function:
+```rust
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+```
+
+there we say that the parameters `x` and `y` have some lifetime `'a` and that
+the string slice returned from the function will live as long as lifetime `'a`.
+
+* Lifetime annotations in structs.
