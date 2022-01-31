@@ -1632,6 +1632,261 @@ uses up the iterator:
   from the iterator and returns a Boolean. If the closure returns `true` the
   value will be included in the iterator produced by `filter`.
 
+# 15. Smart pointers
+
+1. [Box<T>](#box-t)
+2. [Deref trait](#deref-trait)
+3. [Drop trait](#drop-trait)
+4. [Rc<T>](#rc-t)
+5. [RefCell<T> and the interior mutability pattern](#refcell-t-and-the-interior-mutability-pattern)
+6. [Reference cycles](#reference-cycles)
+
+The most common kind of pointer in Rust is a reference (`&`), they are simply
+used to refer to data.
+
+*Smart pointers* are data structures that act like a pointer and have
+additional metadata and capabilities. An additional difference between
+references and smart pointers is that references are pointers that only borrow
+data, whereas smart pointers can own data they point to.
+
+Smart pointers implement the `Deref` and `Drop` traits. `Deref` allows an
+instance of a smart pointer to behave like a reference (so we can use smart
+pointers as smart pointers or references). `Drop` allows us to customise the
+code that is run when an instance of the smart pointer goes out of scope.
+
+The most common smart pointers are: `Box<T>` (allocates on the heap), `Rc<T>`
+(a reference counting type with multiple ownership), `Ref<T>` and `RefMut<T>`
+accessed through `RefCell<T>` (enforces borrowing rules at runtime instead of
+compile time).
+
+
+* `Rc<T>` enables multiple owners of the same data; `Box<T>` and `RefCell<T>`
+  have single owners. 
+* `Box<T>` allows immutable or mutable borrows checked at compile time; `Rc<T>`
+  allows only immutable borrows checked at compile time; `RefCell<T>` allows
+  immutable or mutable borrows checked at runtime. 
+* Because `RefCell<T>` allows mutable borrows checked at runtime, you can
+  mutate the value inside the `RefCell<T>` even when the `RefCell<T>` is
+  immutable.
+
+
+## Box<T>
+
+```rust
+fn main() {
+    let b = Box::new(5);
+    println!("b: {}, &b {:p}", b, &b);
+}
+```
+
+Boxes do not have any performance overhead and are useful when we are defining
+recursive data structures.
+
+```rust
+enum List {
+    Cons(i32, Box<List>),
+    Nil,
+}
+```
+
+## Deref trait
+
+Implementing this trait allows us to customise the behaviour of the
+*dereference operator* (`*`).
+
+Without the `Deref` trait the compiler can only dereference `&` references. To
+implement it we need to include the trait from `std:ops::Deref` and implement
+the `deref` method that takes a reference to `self`:
+
+```rust
+use std::ops::Deref;
+struct MyBox<T>(T);
+
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
+        MyBox(x)
+    }
+}
+
+impl<T> Deref for MyBox<T> {
+    type Target = T; // this defines an associated type for the Deref trait (see ch19)
+
+    fn deref(&self) -> &Self::Target {
+        &self.0 // deref returns a reference to the value that we want
+    }
+}
+```
+
+If we didn't implement the `Deref` trait we couldn't run this:
+```rust
+let x = 5;
+let y = MyBox::new(x);
+assert_eq!(5, *y); // compiler error, type MyBox cannot be referenced
+```
+
+* `Deref coercion` is something that Rust does on arguments to functions and
+  methods to help us; it only works on types that implement the `Deref` trait.
+  It also let us write code that can work for either references or smart
+  pointers.
+  
+  For example, it converts `&String` to `&str`.
+  
+  Using the above example, if we had a function signature like this:
+  ```rust
+  fn hello(name: &str)
+  ```
+  we could pass a `MyBox`:
+  ```rust
+  let m = MyBox::new(String::from("Rust"));
+  hello(&m);
+  ```
+  because due to the `Deref` trait implementation on `MyBox` Rust can deref
+  coerce `&MyBox<String>` into `&String` and Rust's `String` has `Deref`
+  implemented so it can turn `&String` into `&str`.
+  
+  If `Deref` wasn't implemented in `String` we would need to do something like
+  this:
+  ```rust
+  let m = MyBox::new(String::from("Rust"));
+  hello(&(*m)[..]);
+  ```
+
+* We can also implement the `DerefMut` trait to override the `*` operator on
+  mutable references.
+* Deref coercion is made by Rust in these cases:
+  1. from `&T` to `&U` when `T: Deref<Target=U>`.
+  2. from `&mut T` to `&mut U` when `T: DerefMut<Target=U>`.
+     if we have a (mut or not) type `&T` we can get a `&U` of some type `U` if
+     `T` implements `Deref` to that type `U`. 
+  3. from `&mut T` to `&U` when `T: Deref<Target=U>`.
+     we can also coerce a *mutable* reference to an *immutable* one, but not
+     the other way around. This is due to the borrowing rules, remember that we
+     can only have a mutable reference to some data in that scope; so if we
+     covert an immutable reference to a mutable one, that immutable reference
+     must be the only immutable one, but the borrowing rules do not guarantee
+     that (they say that we can have more than one immutable reference, so the
+     compiler can't check).
+
+## Drop trait
+
+This trait allows us to customise what happens when a value goes out of
+scope.
+
+To implement this trait we need to implement the `drop` method that takes
+`&mut self`. We don't need to include anything since  the `Drop` trait is included
+in the prelude.
+
+```rust
+impl Drop for MyType {
+    fn drop(&mut self) {
+        println!("We dropped our type");
+    }
+}
+```
+
+* Note that variables are dropped in the reverse order of their creation.
+
+### Dropping a value early
+
+Rust doesn't let us call the `Drop` trait's `drop` method manually, we need to
+use the `std::mem::drop` (because if we call it manually Rust would still call
+it after the value goes out of scope and we would have double free error).
+
+`std::mem:drop` is a function that we call by passing the value we want to
+force to be dropped early as an argument aka `drop(something)`.
+
+`std::mem::drop` is in the prelude, so we don't need to import anything.
+
+## Rc<T>
+
+`Rc<T>` is the reference counted smart pointer.
+
+To enable multiple ownership Rust has the type `Rc<T>` which is an abbreviation
+for *reference counting*. It keeps track of the number of references to a value
+to determine if the value is still in use.
+
+We use `Rc<T>` when we want to allocate data on the heap for multiple parts of
+a program to read, but when we cannot determine at compile time which part will
+finish using the data last. If we knew about that, that last one would be the
+owner. 
+
+`Rc<T>` can only be used in single-threaded scenarios.
+
+Using `Rc<T>` allows a single value to have multiple owners and the count
+ensures that the value remains valid as long as any of the owners still exist.
+
+## RefCell<T> and the interior mutability pattern
+
+*Interior mutability* is a design pattern that allows us to mutate data even
+when there are immutable references to that data (normally this is disallowed
+by the borrowing rules). To mutate data, the pattern uses `unsafe` code inside
+a data structure; then, the `unsafe` code is wrapped in a safe API.
+
+`RefCell<T>` type represents single ownership over the data it holds, with it
+the borrowing rules' invariants are enforced at *runtime* (as opposed to
+`Box<T>` where the invariants are enforced at compile time).
+
+The borrowing rules were:
+> 1) At any given time you can have *either* (but not both of) one mutable
+> reference or any number of immutable references.
+> 2) References must always be valid.
+
+So, when we break these rules with `RefCell<T>` we will get a panic and the
+program will exit.
+
+In general `RefCell<T>` is used when we as programmers are sure that the
+borrowing rules are going to be followed, but it is impossible for the compiler
+to determine that statically.
+
+`RefCell<T>` can only be used in single-threaded scenarios.
+* `borrow_mut` borrows a mutable reference to the value of the `RefCell<T>`.
+* `borrow` borrows an immutable reference to the value of the `RefCell<T>`.
+
+```rust
+
+pub trait Messenger {
+    fn send(&self, msg: &str); // note that this &self is immutable
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::cell::RefCell;
+
+    struct MockMessenger {
+        sent_messages: RefCell<Vec<String>>,
+    }
+
+    impl MockMessenger {
+        fn new() -> MockMessenger {
+            MockMessenger {
+                sent_messages: RefCell::new(vec![]),
+            }
+        }
+    }
+
+    impl Messenger for MockMessenger {
+        fn send(&self, message: &str) {
+            // here we need to modify self to push the message, but since we
+            // can't do that with a normal vector, we have added a RefCell.
+            self.sent_messages.borrow_mut().push(String::from(message));
+        }
+    }
+
+    #[test]
+    fn it_sends_an_over_75_percent_warning_message() {
+        let mock_messenger = MockMessenger::new();
+        let mut limit_tracker = LimitTracker::new(&mock_messenger, 100);
+        limit_tracker.set_value(80);
+        // here we don't need a mutable reference so we borrow() a immutable reference
+        assert_eq!(mock_messenger.sent_messages.borrow().len(), 1);
+    }
+}
+```
+
+## Reference cycles
+
 # 16. Concurrency
 
 1. [Threads](#threads)
@@ -1647,7 +1902,7 @@ uses up the iterator:
   use std::time::Duration;
 
     fn main() {
-        // this doesn't guarantee that the for will be completed
+        // this doesn't guarantee that the for will be completed (without join)
         // thread::spawn(|| {
         //     for i in 1..10 {
         //         println!("[spawned-thread] hi number {}", i);
@@ -1669,10 +1924,11 @@ uses up the iterator:
     }
     ```
 
-* `move`
+* `move` allows us to use data from one thread in another thread. It transfers
+  ownership of values from one thread to another.
   ```rust
   let v = vec![1, 2, 3];
-  let handle_2 = thread::spawn(move || {
+  let handle_2 = thread::spawn(move || { // if we want to use v in this thread, move is mandatory
       println!("vector: {:?}", v);
   });
   handle_2.join().unwrap();
@@ -1710,6 +1966,30 @@ fn main() {
 
 
 ## Shared-state concurrency
+
+*mutex* stands for *mutual exclusion* and it allows only one thread to access
+some data at a given time. To access this data, the thread must signal that it
+wants access by asking to acquire the mutex's lock. After doing what it has to
+with the data, the thread must unlock the mutex's lock.
+
+In rust we have `Mutex<T>`:
+
+```rust
+use std::sync::Mutex;
+fn main() {
+    let m = Mutex::new(5);
+
+    {
+        let mut num = m.lock().unwrap();
+        *num = 6;
+    }
+
+    println!("m = {:?}", m);
+}
+```
+(single-thread example)
+
+To access the data inside the mutex we use `lock` to acquire the lock.
 
 
 
