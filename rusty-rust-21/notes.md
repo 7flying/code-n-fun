@@ -1669,6 +1669,17 @@ compile time).
   mutate the value inside the `RefCell<T>` even when the `RefCell<T>` is
   immutable.
 
+-------
+||`Box<T>`|`Rc<T>`|`RefCell<T>`|
+--
+Owners of data | single owners | multiple owners | single owners|
+--
+Borrow types | immutable and mutable | immutable | immutable and mutable |
+--
+When are borrows checked? | compile time | compile time | runtime |
+--
+Can we mutate the value even if immutable? | no | no | yes |
+--
 
 ## Box<T>
 
@@ -1885,13 +1896,34 @@ mod tests {
 }
 ```
 
+* We can have multiple owners of mutable data by combining `Rc<T>` and
+  `RefCell<T>`.
+ 
 ## Reference cycles
+
+Rust usually prevents memory leaks but it is possible for them to happen. For
+instance using `Rc<T>` and `RefCell<T>` by creating references where items
+refer to each other in a cycle. The memory leak happens because the reference
+count of each item in the cycle will never reach 0.
+
+When we call `Rc::clone` the `strong_count` of that instance increases, and in
+order for Rust to drop that instance the `strong_count` must be zero.
+
+We can create a *weak reference* to a value within an `Rc<T>` instance by
+calling `Rc::downgrade` and passing a reference to the `Rc<T>`. We get a smart
+pointer of type `Weak<T>` and it makes the `weak_count` to increase instead of
+the `strong_count`. This new count doesn't need to be 0 for the `Rc<T>`
+instance to be cleaned up.
+
+Weak references don't express an ownership relationship, thereby they won't
+cause a reference cycle because the strong count will get to 0.
 
 # 16. Concurrency
 
 1. [Threads](#threads)
 2. [Message passing](#message-passing)
 3. [Shared-state concurrency](#shared-state-concurrency)
+   1. [Atomic reference counting with `Arc<T>`](#atomic-reference-counting-with-arc-t)
 4. [Sync and send traits](#sync-and-send-traits)
 
 ## Threads
@@ -1972,7 +2004,7 @@ some data at a given time. To access this data, the thread must signal that it
 wants access by asking to acquire the mutex's lock. After doing what it has to
 with the data, the thread must unlock the mutex's lock.
 
-In rust we have `Mutex<T>`:
+In Rust we have `Mutex<T>`:
 
 ```rust
 use std::sync::Mutex;
@@ -1991,6 +2023,60 @@ fn main() {
 
 To access the data inside the mutex we use `lock` to acquire the lock.
 
+### Atomic reference counting with `Arc<T>`
 
+`Arc<T>` is a type like `Rc<T>` that is safe to use in concurrent
+situations. The *a* stands for *atomic*, so it is an *atomically reference
+counted* type. See the docs on
+[`std::sync::atomic`](https://doc.rust-lang.org/std/sync/atomic/index.html) to
+learn about atomics.
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        let handle = thread::spawn(move || {
+            // Mutex<T> provides interior mutability, as the Cell family does
+            let mut num = counter.lock().unwrap();
+            *num += 1;
+        });
+        handles.push(handle);
+    }
+    for handle in handles {
+        handle.join().unwrap();
+    }
+    println!("Result {}", *counter.lock().unwrap());
+}
+```
+
+* `Mutex<T>` provides interior mutability, like the `Cell` family does (we
+  could use `RefCell<T>` to mutate contents inside an `Rc<T>`), we can use
+  `Mutex<T>` to mutate contents inside an `Arc<T>`.
+
+* `Mutex<T>` comes with the risk of creating deadlocks.
 
 ## Sync and send traits
+
+The `std::marker` traits `Sync` and `Send` are part of the language.
+
+* `Send` trait: it indicates that ownership of values of the type implementing
+  this trait can be transferred between threads.
+  
+  Almost every Rust type is `Send`, but there are exceptions like `Rc<T>`.
+
+* `Sync` trait: it indicates that is safe for the type implementing it to be
+  referenced from multiple threads.
+  
+  Any type `T` is `Sync` if `&T` (immutable reference to `T`) is `Send` (aka
+  the immutable reference can be send safely to another thread).
+
+  `Rc<T>`, `RefCell<T>` and other `Cell` family types are not `Sync`.
+  
+  `Mutex<T>` is `Sync`.
+
+* Manually implementing `Send` and `Sync` is unsafe.

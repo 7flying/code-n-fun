@@ -21,6 +21,7 @@ use std::thread;
 //     println!("Result {}", *counter.lock().unwrap());
 // }
 
+// Rc<T> cannot be sent between threads safely
 fn main() {
     let counter = Rc::new(Mutex::new(0));
     let mut handles = vec![];
