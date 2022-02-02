@@ -1669,17 +1669,13 @@ compile time).
   mutate the value inside the `RefCell<T>` even when the `RefCell<T>` is
   immutable.
 
--------
+
 ||`Box<T>`|`Rc<T>`|`RefCell<T>`|
---
-Owners of data | single owners | multiple owners | single owners|
---
-Borrow types | immutable and mutable | immutable | immutable and mutable |
---
-When are borrows checked? | compile time | compile time | runtime |
---
-Can we mutate the value even if immutable? | no | no | yes |
---
+|-|-|-|-|
+|Owners of data | single owners | multiple owners | single owners |
+|Borrow types | immutable and mutable | immutable | immutable and mutable |
+|When are borrows checked? | compile time | compile time | runtime |
+|Can we mutate the value even if immutable? | no | no | yes |
 
 ## Box<T>
 
@@ -1923,7 +1919,7 @@ cause a reference cycle because the strong count will get to 0.
 1. [Threads](#threads)
 2. [Message passing](#message-passing)
 3. [Shared-state concurrency](#shared-state-concurrency)
-   1. [Atomic reference counting with `Arc<T>`](#atomic-reference-counting-with-arc-t)
+   1. [Atomic reference counting with `Arc<T>`](#atomic-reference-counting-with-arct)
 4. [Sync and send traits](#sync-and-send-traits)
 
 ## Threads
