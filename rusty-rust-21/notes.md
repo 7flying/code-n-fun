@@ -1342,6 +1342,7 @@ let f = match f {
 1. [Generic data types](#generic-data-types)
 2. [Traits](#traits)
 3. [Lifetimes](#lifetimes)
+4. [An example with all together](#an-example-with-all-together)
 
 ## Generic data types
 
@@ -1569,6 +1570,90 @@ there we say that the parameters `x` and `y` have some lifetime `'a` and that
 the string slice returned from the function will live as long as lifetime `'a`.
 
 * Lifetime annotations in structs.
+  
+  We can use structs to hold references but we would need to add a lifetime
+  annotation on every reference in the struct's definition.
+  
+  ```rust
+  struct ImportantExcerpt<'a> {
+    part: &'a str,
+  }
+  ```
+
+* Lifetime elision.
+
+  We can omit the lifetime annotations sometimes when the Rust compiler has
+  added that certain pattern. These may vary.
+  
+  The compiler uses three rules to figure out what lifetimes references have
+  when there aren't explicit annotations. These rules apply to `fn`
+  definitions and `impl` blocks:
+  
+  1) (It applies to input lifetimes) Each parameter that is a reference gets its
+  own lifetime parameter.
+  
+  `fn foo<'a>(x: &'a i32)` and `fn foo(<'a, 'b>)(x: &'a i32, y: &'b i32)` for
+  instance.
+  
+  2) (It applies to output lifetimes) If there is exactly one input lifetime
+  parameter, that lifetime is assigned to all output lifetime parameters.
+  
+  `fn foo<'a>(x: &'a i32) -> &'a i32`
+  
+  3) (It applies to output lifetimes) If there are multiple input lifetime
+  parameters, but one of them is `&self` or `&mut self` because we are in a
+  method, the lifetime of `self` is assigned to all output parameters.
+
+
+* Lifetime annotations in method definitions.
+
+  Lifetimes for struct fields need to be declared after the `impl` keyword and
+  then used after the struct's name (because they're part of the struct's
+  type): 
+  
+  ```rust
+  impl<'a> ImportantExcerpt<'a> {
+
+    fn level(&self) -> i32 {
+        3
+    }
+  }
+  ```
+  We are required to add the lifetime parameter declaration after `impl` but we
+  don't need to annotate the lifetime of the reference to `self` because of the
+  first elision rule (it will automatically get its own lifetime parameter).
+  
+* The static lifetime
+
+  The `'static` lifetime means that a reference can live for the entire
+  duration of the program. 
+  
+  All string literals have the `'static` lifetime:
+  ```rust
+  let s: &'static str = "this is an static lifetime";
+  ```
+  
+## An example with all together
+
+```rust
+use std::fmt::Display;
+
+fn longest_with_an_announcement<'a, T>(
+    x: &'a str,
+    y: &'a str,
+    ann: T,
+) -> &'a str
+where
+    T: Display,
+{
+    println!("Announcement: {}", ann);
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+```
 
 
 # 13. Closures

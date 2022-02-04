@@ -54,3 +54,38 @@ fn bar() -> impl Future<Output = u8> {
     }
 }
 ```
+
+## async lifetimes
+
+`async fn`s which take reference or other non-`'static` arguments return a
+`Future` which is bounded by the lifetime of the arguments:
+
+So this function:
+```rust
+async fn foo(x: &u8) -> u8 { *x }
+```
+
+is equivalent to:
+```rust
+async fn foo<'a>(x: &'a u8) -> impl Future<Output = u0 + 'a {
+    async move { *x }
+}
+```
+
+Which implies that the future returned from the async function must be
+`.await`ed while the non-`'static` arguments are still valid. This may be an
+issue when we are storing the future or sending it over to another task or
+thread.
+
+A workaround for transforming an async function with references as arguments
+into a `'static' future is to bundle the arguments with the call to the async
+function inside an async block:
+
+```rust
+fn bundle() -> impl Future<Output = u8> {
+    async {
+        let x = 5;
+        borrow_x(&x).await
+    }
+}
+```
